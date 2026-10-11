@@ -15,10 +15,12 @@ import { Button } from '../components/common/Button';
 interface LandingPageProps {
   onGoToAuth: (mode: 'login' | 'register') => void;
   onExploreDemo?: () => void;
+  onBrowseJobs?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onGoToAuth,
+  onBrowseJobs,
 }) => {
   const [activeTab, setActiveTab] = useState<'organic' | 'ipm' | 'weather' | 'market' | 'work' | 'knowledge'>('organic');
 
@@ -41,6 +43,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {onBrowseJobs && (
+              <button
+                type="button"
+                onClick={onBrowseJobs}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200/60 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+              >
+                <Briefcase className="w-3.5 h-3.5" />
+                <span>Browse Farm Jobs</span>
+              </button>
+            )}
             <button
               onClick={() => onGoToAuth('login')}
               className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
@@ -95,6 +107,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             >
               Sign In to SmartFarm
             </Button>
+            {onBrowseJobs && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={onBrowseJobs}
+                className="w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50"
+                icon={<Briefcase className="w-4 h-4 text-emerald-600" />}
+              >
+                Browse Farm Jobs
+              </Button>
+            )}
           </div>
 
           {/* Quick value badges */}
@@ -279,7 +302,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {activeTab === 'work' && (
               <div>
-                <h4 className="text-base font-bold text-slate-900 mb-2">Public Farm Work Board</h4>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+                  <h4 className="text-base font-bold text-slate-900">Public Farm Work Board</h4>
+                  {onBrowseJobs && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onBrowseJobs}
+                      icon={<Briefcase className="w-3.5 h-3.5 text-emerald-600" />}
+                      className="self-start sm:self-auto border-emerald-600/30 text-emerald-800 hover:bg-emerald-50"
+                    >
+                      Browse Live Jobs
+                    </Button>
+                  )}
+                </div>
                 <p className="text-xs text-slate-600 leading-relaxed mb-4">
                   Farmers can post agricultural labor needs (pruning, harvesting, weeding, organic input preparation) without requiring worker account registration.
                 </p>
@@ -289,7 +325,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <p className="text-xs font-bold text-slate-800 mt-1">Thirthahalli, Karnataka • 4 Workers Needed</p>
                     <p className="text-xs text-slate-500">Wage: ₹850/day with farm-cooked meals provided</p>
                   </div>
-                  <span className="text-xs font-semibold text-slate-400">Public Contact Listed</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold text-slate-400">Public Contact Listed</span>
+                    {onBrowseJobs && (
+                      <button
+                        type="button"
+                        onClick={onBrowseJobs}
+                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                      >
+                        View Board &rarr;
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

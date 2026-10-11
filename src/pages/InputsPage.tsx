@@ -18,6 +18,14 @@ export const InputsPage: React.FC = () => {
   const [cropFilter, setCropFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Keep local filter in sync when global active farm changes
+  React.useEffect(() => {
+    if (selectedFarmId) {
+      setFarmFilter(selectedFarmId);
+      setCropFilter('');
+    }
+  }, [selectedFarmId]);
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [inputToEdit, setInputToEdit] = useState<FarmInput | null>(null);

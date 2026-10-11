@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { submitJobInquiry } from '../../services/farmJobService';
-import { FarmJob } from '../../types';
+import { PublicFarmJob } from '../../types';
 import { CheckCircle2 } from 'lucide-react';
 
 interface JobInquiryModalProps {
-  job: FarmJob | null;
+  job: PublicFarmJob | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -90,7 +90,7 @@ export const JobInquiryModal: React.FC<JobInquiryModalProps> = ({ job, isOpen, o
           <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1">
             <p className="font-bold text-slate-800">{job.title}</p>
             <p className="text-slate-500">
-              {job.farm_name} • {job.location} • Starts: {job.start_date}
+              {job.farm_display_name} • {job.location} • Starts: {job.start_date}
             </p>
             {job.wage_rate ? (
               <p className="font-semibold text-emerald-700">

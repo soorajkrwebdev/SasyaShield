@@ -180,8 +180,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // If the user is not logged in or Supabase is null, clear state.
   // NEVER falls back to demo/mock data for authenticated users.
   // ------------------------------------------------------------------
-  const refreshData = useCallback(async () => {
-    if (!supabase || !user) {
+  const refreshData = useCallback(async () => {    if (!supabase || !user) {
       setFarms([]);
       setCrops([]);
       setActivities([]);
@@ -433,21 +432,22 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCropOrganicInputs(coiData);
       setPesticideAdvisories(advisoriesData);
 
-      // Auto-select first farm
-      if (!selectedFarmId && farmsData.length > 0) {
-        setSelectedFarmId(farmsData[0].id);
-      }
-      // If the currently-selected farm was deleted, clear it
-      if (selectedFarmId && !farmsData.find(f => f.id === selectedFarmId)) {
-        setSelectedFarmId(farmsData.length > 0 ? farmsData[0].id : null);
-      }
+      // Auto-select first farm on initial load (only if no farm is currently selected)
+      setSelectedFarmId(prev => {
+        if (!prev && farmsData.length > 0) return farmsData[0].id;
+        // If the previously-selected farm was deleted, switch to the first available
+        if (prev && !farmsData.find(f => f.id === prev)) {
+          return farmsData.length > 0 ? farmsData[0].id : null;
+        }
+        return prev;
+      });
     } catch (err: any) {
       console.error('[FarmContext] Error fetching farm data:', err);
       setError(err.message ?? 'Failed to load farm data.');
     } finally {
       setLoading(false);
     }
-  }, [user, selectedFarmId]);
+  }, [user]); // selectedFarmId intentionally excluded — refresh fetches all user-owned data
 
   useEffect(() => {
     refreshData();
@@ -524,7 +524,12 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateCrop = async (id: string, data: Partial<FarmCrop>) => {
     try {
       const sb = assertSupabase();
-      const { data: row, error } = await sb.from('farm_crops').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name)').single();
+      // Defense-in-depth: immutable identity / ownership fields must never be
+      // reassigned via a client UPDATE spread, even if the type surface is
+      // open. RLS UPDATE WITH CHECK already guards farm_id cross-user moves;
+      // this ensures we never send id/user_id/created_at in the UPDATE body.
+      const { id: _id, user_id: _uid, created_at: _ca, ...changes } = data;
+      const { data: row, error } = await sb.from('farm_crops').update({ ...changes, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name)').single();
       if (error) return { error: error.message };
       const formatted: FarmCrop = { ...row, farm_name: row.farms?.name ?? '', farms: undefined };
       setCrops(prev => prev.map(c => c.id === id ? formatted : c));
@@ -559,7 +564,12 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateActivity = async (id: string, data: Partial<CropActivity>) => {
     try {
       const sb = assertSupabase();
-      const { data: row, error } = await sb.from('crop_activities').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name), farm_crops(crop_name)').single();
+      // Defense-in-depth: strip immutable ownership columns from the UPDATE
+      // spread. RLS UPDATE WITH CHECK guards cross-user moves of farm_id;
+      // additionally prevent a direct user_id reassignment or id/created_at
+      // overwrite even if the type surface permits it.
+      const { id: _id, user_id: _uid, created_at: _ca, ...changes } = data;
+      const { data: row, error } = await sb.from('crop_activities').update({ ...changes, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name), farm_crops(crop_name)').single();
       if (error) return { error: error.message };
       const formatted: CropActivity = { ...row, farm_name: row.farms?.name ?? '', crop_name: row.farm_crops?.crop_name ?? '', farms: undefined, farm_crops: undefined };
       setActivities(prev => prev.map(a => a.id === id ? formatted : a));
@@ -594,7 +604,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateInput = async (id: string, data: Partial<FarmInput>) => {
     try {
       const sb = assertSupabase();
-      const { data: row, error } = await sb.from('farm_inputs').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name), farm_crops(crop_name)').single();
+      // Defense-in-depth: strip immutable identity and ownership fields.
+      // user_id, id, and created_at are server-managed and must not be
+      // reassigned via a generic Partial<T> update call.
+      const { id: _id, user_id: _uid, created_at: _ca, ...changes } = data;
+      const { data: row, error } = await sb.from('farm_inputs').update({ ...changes, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name), farm_crops(crop_name)').single();
       if (error) return { error: error.message };
       const formatted: FarmInput = { ...row, farm_name: row.farms?.name ?? '', crop_name: row.farm_crops?.crop_name ?? '', farms: undefined, farm_crops: undefined };
       setInputs(prev => prev.map(i => i.id === id ? formatted : i));
@@ -629,7 +643,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updatePestObservation = async (id: string, data: Partial<PestObservation>) => {
     try {
       const sb = assertSupabase();
-      const { data: row, error } = await sb.from('pest_observations').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name), farm_crops(crop_name)').single();
+      const { id: _id, user_id: _user_id, farm_id: _farm_id, created_at: _created_at, updated_at: _updated_at, ...stripped } = data;
+      const { data: row, error } = await sb.from('pest_observations').update({ ...stripped, updated_at: new Date().toISOString() }).eq('id', id).select('*, farms(name), farm_crops(crop_name)').single();
       if (error) return { error: error.message };
       const formatted: PestObservation = { ...row, farm_name: row.farms?.name ?? '', crop_name: row.farm_crops?.crop_name ?? '', farms: undefined, farm_crops: undefined };
       setPestObservations(prev => prev.map(o => o.id === id ? formatted : o));
@@ -724,9 +739,10 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updatePestFollowUp = async (id: string, data: Partial<PestFollowUp>) => {
     try {
       const sb = assertSupabase();
+      const { id: _id, user_id: _user_id, farm_id: _farm_id, created_at: _created_at, updated_at: _updated_at, ...stripped } = data;
       const { data: row, error } = await sb
         .from('pest_follow_ups')
-        .update({ ...data, updated_at: new Date().toISOString() })
+        .update({ ...stripped, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select('*, farms(name), farm_crops(crop_name), pest_observations(pest_name)')
         .single();

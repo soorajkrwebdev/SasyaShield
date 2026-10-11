@@ -117,19 +117,23 @@ export const FarmAiPage: React.FC = () => {
     try {
       const records = await fetchAiConversations(user.id);
       setConversations(records);
-      if (records.length > 0 && !activeConversationId) {
-        // Load the most recent conversation
-        const latest = records[0];
-        setActiveConversationId(latest.id);
-        setActiveTitle(latest.title);
-        if (latest.messages && latest.messages.length > 0) {
-          setMessages(latest.messages);
+      // Only auto-load the latest conversation on first mount (when no conversation is active).
+      // We read activeConversationId with a functional setter to avoid adding it as a dep.
+      setActiveConversationId(prevId => {
+        if (!prevId && records.length > 0) {
+          const latest = records[0];
+          setActiveTitle(latest.title);
+          if (latest.messages && latest.messages.length > 0) {
+            setMessages(latest.messages);
+          }
+          return latest.id;
         }
-      }
+        return prevId;
+      });
     } finally {
       setLoadingHistory(false);
     }
-  }, [user?.id, activeConversationId]);
+  }, [user?.id]); // activeConversationId intentionally excluded to avoid re-running on conv switches
 
   // Load conversation history on mount
   useEffect(() => {
@@ -272,7 +276,7 @@ export const FarmAiPage: React.FC = () => {
       case 'Agricultural Knowledge':
         return 'blue';
       case 'Weather Context':
-        return 'teal';
+        return 'blue';
       case 'Market Data':
         return 'amber';
       case 'Uncertain / Insufficient Evidence':
@@ -289,7 +293,7 @@ export const FarmAiPage: React.FC = () => {
       case 2:
         return <Badge variant="emerald">Level 2: Farm Ledger</Badge>;
       case 3:
-        return <Badge variant="teal">Level 3: Live External Telemetry</Badge>;
+        return <Badge variant="indigo">Level 3: Live External Telemetry</Badge>;
       case 4:
         return <Badge variant="amber">Level 4: AI Synthesis</Badge>;
       default:

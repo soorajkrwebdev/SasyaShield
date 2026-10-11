@@ -20,7 +20,7 @@ import { MarketPage } from './pages/market/MarketPage';
 import { FarmWorkBoardPage } from './pages/farm-work/FarmWorkBoardPage';
 import { AnalyticsPage } from './pages/analytics/AnalyticsPage';
 import { FarmAiPage } from './pages/farm-ai/FarmAiPage';
-import { KnowledgePage } from './pages/knowledge/KnowledgePage';
+import { KnowledgeLibraryPage } from './pages/knowledge/KnowledgeLibraryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ExpensesPage } from './pages/ExpensesPage';
 import { HarvestsPage } from './pages/HarvestsPage';
@@ -34,10 +34,13 @@ import { InputFormModal } from './components/inputs/InputFormModal';
 import { PestObservationModal } from './components/pest-ipm/PestObservationModal';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 
+import { ArrowLeft, Leaf } from 'lucide-react';
+import { Button } from './components/common/Button';
+
 const MainAppContent: React.FC = () => {
   const { user, loading, connection } = useAuth();
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
-  const [authView, setAuthView] = useState<'none' | 'login' | 'register'>('none');
+  const [authView, setAuthView] = useState<'none' | 'login' | 'register' | 'farm-work'>('none');
 
   // Quick-action modal triggers
   const [isAddFarmOpen, setIsAddFarmOpen] = useState(false);
@@ -84,16 +87,79 @@ const MainAppContent: React.FC = () => {
     );
   }
 
-  // Not logged in → landing page or auth
+  // Not logged in → landing page, auth, or public farm work board
   if (!user && authView === 'none') {
     return (
       <LandingPage
         onGoToAuth={(mode) => setAuthView(mode)}
+        onBrowseJobs={() => setAuthView('farm-work')}
       />
     );
   }
 
-  if (!user && authView !== 'none') {
+  if (!user && authView === 'farm-work') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setAuthView('none')}
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer mr-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Home</span>
+              </button>
+              <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-sm shadow-emerald-700/20">
+                  <Leaf className="w-4 h-4 fill-white/20" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-extrabold text-slate-900 tracking-tight text-base font-heading">SmartFarm</span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 uppercase tracking-wider">2.0</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium hidden sm:block">Public Community Work Board</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setAuthView('login')}
+                className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+              >
+                Farmer Login
+              </button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setAuthView('register')}
+              >
+                Create Farmer Account
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+          <FarmWorkBoardPage onGoToAuth={(mode) => setAuthView(mode)} />
+        </main>
+
+        <footer className="mt-auto py-6 bg-white border-t border-slate-200 text-slate-400 text-xs text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500">
+            <p>© {new Date().getFullYear()} SmartFarm 2.0 • Public Farm Work Board</p>
+            <p className="text-[11px] text-slate-400">Direct farm-to-community labor coordination • Zero intermediary fees</p>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  if (!user && (authView === 'login' || authView === 'register')) {
     return (
       <AuthPage
         initialMode={authView}
@@ -123,7 +189,7 @@ const MainAppContent: React.FC = () => {
       case 'activities': return <ActivitiesPage />;
       case 'inputs':     return <InputsPage />;
       case 'organic':    return <OrganicPage />;
-      case 'pest-ipm':   return <PestPage />;
+      case 'pest-ipm':   return <PestPage onNavigateToOrganic={() => setCurrentTab('organic')} />;
       case 'tests':      return <TestsPage />;
       case 'waste':      return <WastePage />;
       case 'sustainability': return <SustainabilityPage />;
@@ -132,7 +198,7 @@ const MainAppContent: React.FC = () => {
       case 'farm-work':  return <FarmWorkBoardPage />;
       case 'analytics':  return <AnalyticsPage />;
       case 'farm-ai':    return <FarmAiPage />;
-      case 'knowledge':  return <KnowledgePage />;
+      case 'knowledge':  return <KnowledgeLibraryPage />;
       case 'profile':    return <ProfilePage />;
       case 'expenses':     return <ExpensesPage />;
       case 'harvests':     return <HarvestsPage />;

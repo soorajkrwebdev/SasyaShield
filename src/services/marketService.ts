@@ -1,22 +1,16 @@
 import { supabase } from '../lib/supabase';
-import { MarketPriceRecord } from '../types';
+import type { MarketPriceRecord } from '../types';
+import {
+  getCommoditySearchTerms,
+  mapMarketPriceRow,
+} from './marketCommodityMapping';
+
+export { COMMODITY_ALIASES, getCommoditySearchTerms } from './marketCommodityMapping';
 
 export interface CommodityMapping {
   standardName: string;
   aliases: string[];
 }
-
-export const COMMODITY_ALIASES: Record<string, string[]> = {
-  Arecanut: ['Arecanut', 'Areca nut', 'Betelnut', 'Betel nut', 'Supari', 'Chali'],
-  Coconut: ['Coconut', 'Copra', 'Coconut Fresh', 'Tender Coconut', 'Matured Coconut'],
-  'Black Pepper': ['Black Pepper', 'Pepper', 'Garbled Pepper', 'Black Pepper (Garbled)', 'Pepper Garbled'],
-  Banana: ['Banana', 'Banana (Ripe)', 'Banana (Raw)', 'Yelakki', 'Nendran', 'Robusta'],
-  Coffee: ['Coffee', 'Coffee Raw', 'Coffee Arabica', 'Coffee Robusta', 'Parchment'],
-  Cardamom: ['Cardamom', 'Small Cardamom', 'Green Cardamom'],
-  Ginger: ['Ginger', 'Ginger (Green)', 'Fresh Ginger', 'Dry Ginger'],
-  Turmeric: ['Turmeric', 'Turmeric (Raw)', 'Turmeric Finger', 'Curcuma'],
-  Paddy: ['Paddy', 'Paddy (Dhan)', 'Rice', 'Basmati Paddy'],
-};
 
 export interface MarketQueryFilter {
   crop?: string;
@@ -35,22 +29,6 @@ export interface MarketAnalysisResult {
   trend: 'up' | 'down' | 'stable' | 'insufficient_data';
   latestPrice: MarketPriceRecord | null;
   source: string;
-}
-
-/**
- * Normalizes input commodity names against standard aliases
- */
-export function getCommoditySearchTerms(cropName: string): string[] {
-  const trimmed = cropName.trim().toLowerCase();
-  for (const [standardName, aliases] of Object.entries(COMMODITY_ALIASES)) {
-    if (
-      standardName.toLowerCase() === trimmed ||
-      aliases.some(a => a.toLowerCase() === trimmed)
-    ) {
-      return [standardName, ...aliases];
-    }
-  }
-  return [cropName.trim()];
 }
 
 /**
@@ -114,20 +92,7 @@ export async function fetchMarketPrices(
       };
     }
 
-    const records: MarketPriceRecord[] = (data || []).map((row: any) => ({
-      id: row.id,
-      crop: row.crop,
-      state: row.state,
-      district: row.district,
-      market: row.market,
-      price_date: row.price_date,
-      min_price: row.min_price != null ? Number(row.min_price) : undefined,
-      max_price: row.max_price != null ? Number(row.max_price) : undefined,
-      modal_price: Number(row.modal_price),
-      unit: row.unit || 'INR/quintal',
-      source_name: row.source_name || 'AGMARKNET / DMI',
-      created_at: row.created_at,
-    }));
+    const records: MarketPriceRecord[] = (data || []).map((row: any) => mapMarketPriceRow(row));
 
     if (records.length === 0) {
       return {

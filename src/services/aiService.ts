@@ -18,7 +18,7 @@ import {
   AiResponseType,
   AiSourceItem,
 } from '../types';
-import { CHEMICAL_DISCLAIMER } from '../lib/pesticideSafety';
+import { CHEMICAL_DISCLAIMER, CHEMICAL_UNVERIFIED_PLACEHOLDER } from '../lib/pesticideSafety';
 
 export interface FarmAiContext {
   farms: Farm[];
@@ -189,13 +189,14 @@ async function retrieveAuthoritativeKnowledge(
     let advQuery = supabase.from('pesticide_advisories').select('*').limit(8);
     const { data: advData } = await advQuery;
 
-    // Filter advisories matching query or crops
+    // Filter advisories matching query or crops — use REAL pesticide_advisories columns
     const matchingAdv = (advData || []).filter((a: any) => {
-      const cMatch = cropNames.some(cn => a.crop_name?.toLowerCase().includes(cn) || cn.includes(a.crop_name?.toLowerCase() || ''));
-      const qMatch = q.includes(a.crop_name?.toLowerCase() || '') ||
-                     q.includes(a.pest_name?.toLowerCase() || '') ||
-                     q.includes(a.chemical_name?.toLowerCase() || '') ||
-                     q.includes(a.commercial_name?.toLowerCase() || '');
+      const cropField = a.crop?.toLowerCase() || '';
+      const pestField = a.pest_or_disease?.toLowerCase() || '';
+      const recField = a.recommendation?.toLowerCase() || '';
+      const aiField = a.active_ingredient?.toLowerCase() || '';
+      const cMatch = cropNames.some(cn => cropField.includes(cn) || cn.includes(cropField));
+      const qMatch = q.includes(cropField) || q.includes(pestField) || q.includes(recField) || q.includes(aiField);
       return cMatch || qMatch;
     });
 
@@ -204,7 +205,7 @@ async function retrieveAuthoritativeKnowledge(
     const { data: orgData } = await orgQuery;
 
     const matchingOrg = (orgData || []).filter((o: any) => {
-      const qMatch = q.includes(o.input_name?.toLowerCase() || '') ||
+      const qMatch = q.includes(o.name?.toLowerCase() || '') ||
                      q.includes(o.category?.toLowerCase() || '') ||
                      (o.suitable_crops || []).some((sc: string) => q.includes(sc.toLowerCase()));
       const cMatch = (o.suitable_crops || []).some((sc: string) => cropNames.some(cn => cn.includes(sc.toLowerCase())));
@@ -656,44 +657,56 @@ function executeGroundedReasoning(
     }
 
     const adv = matchingAdv[0];
+    const cropField = adv.crop || 'Crop';
+    const pestField = adv.pest_or_disease || 'Target pest/disease';
+    const verificationStatus = adv.verification_status || 'Unverified / For Review';
+    const phiText = adv.phi_days != null ? `${adv.phi_days} days` : CHEMICAL_UNVERIFIED_PLACEHOLDER;
+    const reiText = adv.rei_hours != null ? `${adv.rei_hours} hours` : CHEMICAL_UNVERIFIED_PLACEHOLDER;
+    const controlCat = adv.control_category || 'Advisory';
+    const sourceOrg = adv.source_name || 'Authoritative Agricultural Source';
+    const sourceDoc = adv.source_document_title || adv.source_reference || 'Source document';
+    const sourceUrl = adv.source_url || undefined;
+    const sources: AiSourceItem[] = [
+      {
+        organization: sourceOrg,
+        document: sourceDoc,
+        reference: `${adv.source_page ? adv.source_page + ' • ' : ''}Verification: ${verificationStatus}`,
+        date: adv.source_document_date || adv.last_verified || undefined,
+        url: sourceUrl,
+      },
+    ];
+    if (verificationStatus === 'Registered Formulation' || verificationStatus === 'Registered Use (Crop/Pest)') {
+      sources.push({
+        organization: 'CIBRC',
+        document: 'Registered Pesticides & MRL Directory',
+        reference: 'Statutory Registration (indicated by knowledge-base grade)',
+        url: 'https://cibrc.nic.in',
+      });
+    }
+    const points: string[] = [
+      `Crop / Target: ${cropField} / ${pestField}.`,
+      `Control category: ${controlCat}. Graded in the knowledge base as: ${verificationStatus}.`,
+    ];
+    if (adv.recommendation) points.push(`Recommendation: ${adv.recommendation}`);
+    if (adv.product_information) points.push(`Product information: ${adv.product_information}`);
+    if (adv.application_information) points.push(`Application guidance: ${adv.application_information}`);
+    if (adv.safety_information) points.push(`Safety information: ${adv.safety_information}`);
+    if (controlCat === 'chemical') {
+      points.push(`Pre-Harvest Interval (PHI): ${phiText}.`);
+      points.push(`Worker Re-Entry Interval (REI): ${reiText}.`);
+    }
     return {
       message: {
         role: 'assistant',
-        title: `Verified Pesticide Advisory: ${adv.crop_name} — ${adv.pest_name}`,
+        title: `Pesticide / IPM Advisory: ${cropField} — ${pestField}`,
         response_type: 'Agricultural Knowledge',
-        source_level: 1,
-        content: `**Authoritative Institutional Advisory for ${adv.crop_name} (${adv.pest_name}):**\n\n• **Active Chemical:** ${adv.chemical_name || 'Refer to registered product'}\n• **Commercial Formulation:** ${adv.commercial_name || 'Registered formulation'}\n• **Approved Official Dosage:** **${adv.dosage || 'Refer to registered product label'}**\n• **Pre-Harvest Interval (PHI):** **${adv.waiting_period_days !== undefined ? `${adv.waiting_period_days} days` : 'Refer to product label'}**\n• **Re-Entry Interval (REI):** **${adv.re_entry_period_hours !== undefined ? `${adv.re_entry_period_hours} hours` : 'Refer to product label'}**\n• **CIBRC Status:** ${adv.cibrc_status || 'Registered under Insecticides Act'}\n• **Publishing Source:** ${adv.source_name || 'ICAR Research Institute Extension Manual'}`,
+        source_level: controlCat === 'chemical' ? (verificationStatus === 'Registered Use (Crop/Pest)' || verificationStatus === 'Registered Formulation' ? 1 : 2) : 1,
+        content: `**Source-grounded advisory for ${cropField} (${pestField}).**\n\nControl-category grade: **${controlCat}**\nKnowledge-base verification grade: **${verificationStatus}**\n\nExact dose, concentration, mixing ratio, PHI and REI values are only stated when the corresponding field in the knowledge base is populated from a retrievable, traceable source; otherwise the unverified placeholder is shown. No agricultural number is fabricated by this platform.`,
         sections: [
-          {
-            heading: 'Institutional Application Guidelines',
-            points: [
-              `Target Pest: ${adv.pest_name} on ${adv.crop_name}.`,
-              `Approved Dosage: ${adv.dosage || 'Check label'}.`,
-              `Mandatory Pre-Harvest Waiting Period: ${adv.waiting_period_days ?? 'Refer to label'} days before harvest.`,
-              `Worker Re-Entry Interval: ${adv.re_entry_period_hours ?? 'Refer to label'} hours.`,
-            ],
-          },
-          {
-            heading: 'Statutory Safety Disclaimer',
-            points: [
-              CHEMICAL_DISCLAIMER,
-            ],
-          },
+          { heading: 'Advisory Details', points },
+          { heading: 'Statutory Safety Disclaimer', points: [CHEMICAL_DISCLAIMER, CHEMICAL_UNVERIFIED_PLACEHOLDER] },
         ],
-        sources: [
-          {
-            organization: adv.source_name || 'ICAR-CPCRI / IISR',
-            document: 'Package of Practices for Plantation & Spices Crops',
-            reference: 'Official Institutional Advisory',
-            url: 'https://cpcri.icar.gov.in',
-          },
-          {
-            organization: 'CIBRC',
-            document: 'Registered Pesticides & MRL Directory',
-            reference: 'Statutory Standards',
-            url: 'https://cibrc.nic.in',
-          },
-        ],
+        sources,
         timestamp: now,
       },
       response_type: 'Agricultural Knowledge',
@@ -753,7 +766,6 @@ function executeGroundedReasoning(
     q.includes('organic inputs are relevant') ||
     (q.includes('organic') && (q.includes('arecanut') || q.includes('pepper') || q.includes('crop')))
   ) {
-    const org = retrieved.matchingOrganicInputs;
     return {
       message: {
         role: 'assistant',

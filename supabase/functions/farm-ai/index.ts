@@ -113,11 +113,11 @@ serve(async (req) => {
 
     // Verify authenticated caller if Authorization header is present
     const authHeader = req.headers.get('Authorization');
-    let user = null;
+    let _user = null;
     if (authHeader) {
       const { data: { user: authUser }, error: authErr } = await supabaseClient.auth.getUser();
       if (!authErr && authUser) {
-        user = authUser;
+        _user = authUser;
       }
     }
 
@@ -593,7 +593,7 @@ function generateDeterministicGroundedResponse(query: string, context: FarmAiCon
 
   // 6. Organic Inputs for Crops (e.g., Arecanut, Black Pepper)
   if (q.includes('organic input') || q.includes('organic practices') || q.includes('organic') && (q.includes('arecanut') || q.includes('pepper') || q.includes('recorded'))) {
-    const org = context.matchingOrganicInputs || [];
+    const _org = context.matchingOrganicInputs || [];
     return {
       message: {
         role: 'assistant',

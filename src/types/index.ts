@@ -749,6 +749,7 @@ export interface CropHarvest {
 export interface MarketPriceRecord {
   id: string;
   crop: string;
+  canonical_crop?: string;
   state: string;
   district: string;
   market: string;
@@ -758,6 +759,10 @@ export interface MarketPriceRecord {
   modal_price: number;
   unit: string;
   source_name: string;
+  source_url?: string | null;
+  variety?: string | null;
+  grade?: string | null;
+  fetched_at?: string | null;
   created_at?: string;
 }
 

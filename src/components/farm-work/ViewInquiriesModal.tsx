@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../common/Modal';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
@@ -22,26 +22,32 @@ export const ViewInquiriesModal: React.FC<ViewInquiriesModalProps> = ({
   const [inquiries, setInquiries] = useState<JobInquiry[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const loadInquiries = async () => {
+  const loadInquiries = useCallback(async () => {
     setLoading(true);
     const data = await getInquiriesForFarmerJobs(jobId);
     setInquiries(data);
     setLoading(false);
-  };
+  }, [jobId]);
 
   useEffect(() => {
     if (isOpen) {
       loadInquiries();
     }
-  }, [isOpen, jobId]);
+  }, [isOpen, loadInquiries]);
 
   const handleStatusChange = async (inquiryId: string, status: JobInquiry['status']) => {
     setActionLoading(inquiryId);
-    await updateInquiryStatus(inquiryId, status);
-    setInquiries(prev =>
-      prev.map(item => (item.id === inquiryId ? { ...item, status } : item))
-    );
+    setActionError(null);
+    const result = await updateInquiryStatus(inquiryId, status);
+    if (result.error) {
+      setActionError(result.error);
+    } else {
+      setInquiries(prev =>
+        prev.map(item => (item.id === inquiryId ? { ...item, status } : item))
+      );
+    }
     setActionLoading(null);
   };
 
@@ -70,6 +76,12 @@ export const ViewInquiriesModal: React.FC<ViewInquiriesModalProps> = ({
         <p className="text-xs text-slate-500">
           Review worker and community member contacts who expressed interest in your farm work listings.
         </p>
+
+        {actionError && (
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl">
+            {actionError}
+          </div>
+        )}
 
         {loading ? (
           <div className="py-12 text-center text-slate-500 text-sm">

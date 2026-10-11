@@ -51,29 +51,43 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     inputs,
     organicInputs,
     pestObservations,
-    ipmRecords: _ipmRecords,
     pesticideApplications,
+    pestFollowUps,
     soilTests,
     waterTests,
     selectedFarm,
   } = useFarmData();
 
+  const farmFilter = <T extends { farm_id: string }>(items: T[]): T[] =>
+    selectedFarm ? items.filter(i => i.farm_id === selectedFarm.id) : items;
+
+  const farmCrops = farmFilter(crops);
+  const farmPests = farmFilter(pestObservations);
+  const farmApps = farmFilter(pesticideApplications);
+  const farmFollowUps = farmFilter(pestFollowUps);
+
   const activeFarms = farms.filter(f =>
     crops.some(c => c.farm_id === f.id && c.status === 'active') || farms.length <= 3
   );
-  const activeCrops = crops.filter(c => c.status === 'active');
-  const totalPestObs = pestObservations.length;
+  const activeCrops = farmCrops.filter(c => c.status === 'active');
+  const totalPestObs = farmPests.length;
 
-  const highSeverityPests = pestObservations.filter(
+  const highSeverityPests = farmPests.filter(
     p => p.severity === 'high' || p.severity === 'critical'
   );
-  const openPestFollowups = pestObservations.filter(
-    p => p.severity === 'high' || p.severity === 'critical' || p.severity === 'medium'
-  );
-  const upcomingAppFollowups = pesticideApplications.filter(
-    a => a.follow_up_date !== undefined && a.follow_up_date !== null && a.follow_up_date !== ''
-  );
-  const openFollowUpsCount = openPestFollowups.length + upcomingAppFollowups.length;
+
+  // Scheduled pesticide applications that do NOT yet have an associated pest_follow_up
+  const pendingAppFollowups = farmApps.filter(a => {
+    if (!a.follow_up_date) return false;
+    const hasFollowUp = farmFollowUps.some(f => f.pesticide_application_id === a.id);
+    return !hasFollowUp;
+  });
+
+  // Recorded follow-ups with unresolved/unknown outcome
+  const unresolvedFollowUps = farmFollowUps.filter(f => f.outcome === 'unknown');
+
+  // Open follow-up count (matching Pest & IPM page semantics)
+  const openFollowUpsCount = pendingAppFollowups.length + unresolvedFollowUps.length;
 
   const organicPracticeActivities = activities.filter(a => {
     const t = a.activity_type;
@@ -185,7 +199,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <StatCard
           title="Open Follow-ups"
           value={openFollowUpsCount}
-          subtext={`${upcomingAppFollowups.length} pesticide applications pending`}
+          subtext={`${pendingAppFollowups.length} scheduled treatment follow-ups`}
           icon={<ClipboardList className="w-5 h-5" />}
           accentColor="amber"
         />
@@ -214,7 +228,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </button>
           </div>
 
-          {highSeverityPests.length === 0 && upcomingAppFollowups.length === 0 ? (
+          {highSeverityPests.length === 0 && pendingAppFollowups.length === 0 ? (
             <div className="py-5 text-center rounded-xl bg-rose-50/50 border border-rose-100/70">
               <p className="text-xs font-semibold text-rose-700">No urgent pest alerts 🎉</p>
               <p className="text-[11px] text-slate-500 mt-1">
@@ -236,7 +250,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   </div>
                 </li>
               ))}
-              {upcomingAppFollowups.slice(0, 2).map(a => (
+              {pendingAppFollowups.slice(0, 2).map(a => (
                 <li key={a.id} className="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-100">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">

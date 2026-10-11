@@ -29,11 +29,22 @@ export const FarmMapPicker: React.FC<FarmMapPickerProps> = ({
   const initialLat = latitude ?? 13.6937;
   const initialLng = longitude ?? 75.2415;
 
+  // Capture initial values in refs so the map init effect runs only once
+  // (on mount) regardless of parent re-renders.
+  const initialLatRef = useRef(initialLat);
+  const initialLngRef = useRef(initialLng);
+  const onChangeRef   = useRef(onChange);
+  // Keep onChangeRef current without triggering a re-init
+  useEffect(() => { onChangeRef.current = onChange; });
+
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
+    const lat = initialLatRef.current;
+    const lng = initialLngRef.current;
+
     const map = L.map(mapContainerRef.current, {
-      center: [initialLat, initialLng],
+      center: [lat, lng],
       zoom: 12,
       zoomControl: true,
     });
@@ -43,18 +54,18 @@ export const FarmMapPicker: React.FC<FarmMapPickerProps> = ({
       maxZoom: 19,
     }).addTo(map);
 
-    const marker = L.marker([initialLat, initialLng], {
+    const marker = L.marker([lat, lng], {
       draggable: true,
     }).addTo(map);
 
     marker.on('dragend', () => {
       const pos = marker.getLatLng();
-      onChange(Number(pos.lat.toFixed(6)), Number(pos.lng.toFixed(6)));
+      onChangeRef.current(Number(pos.lat.toFixed(6)), Number(pos.lng.toFixed(6)));
     });
 
     map.on('click', (e: L.LeafletMouseEvent) => {
       marker.setLatLng(e.latlng);
-      onChange(Number(e.latlng.lat.toFixed(6)), Number(e.latlng.lng.toFixed(6)));
+      onChangeRef.current(Number(e.latlng.lat.toFixed(6)), Number(e.latlng.lng.toFixed(6)));
     });
 
     mapInstanceRef.current = map;

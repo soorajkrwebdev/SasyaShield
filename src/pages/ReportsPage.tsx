@@ -17,7 +17,6 @@ import {
   Leaf,
   Layers,
   Bug,
-  TestTube,
 } from 'lucide-react';
 import {
   compileFarmReportData,
@@ -32,6 +31,7 @@ export const ReportsPage: React.FC = () => {
   const { user, profile } = useAuth();
   const {
     farms,
+    selectedFarmId: contextFarmId,
     crops,
     activities,
     inputs,
@@ -51,7 +51,7 @@ export const ReportsPage: React.FC = () => {
   const [reports, setReports] = useState<FarmReportRecord[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [selectedFarmId, setSelectedFarmId] = useState<string>('');
+  const [selectedFarmId, setSelectedFarmId] = useState<string>(contextFarmId || '');
   const [reportType, setReportType] = useState<ReportType>('crop_protection');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -70,10 +70,12 @@ export const ReportsPage: React.FC = () => {
   }, [loadReports]);
 
   useEffect(() => {
-    if (farms.length > 0 && !selectedFarmId) {
+    if (contextFarmId) {
+      setSelectedFarmId(contextFarmId);
+    } else if (farms.length > 0 && !selectedFarmId) {
       setSelectedFarmId(farms[0].id);
     }
-  }, [farms, selectedFarmId]);
+  }, [contextFarmId, farms, selectedFarmId]);
 
   const handleGenerate = async () => {
     if (!user?.id || !selectedFarmId) {
@@ -173,7 +175,7 @@ export const ReportsPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Farm Reports & Audit Ledger</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Generate verifiable agricultural reports from your authenticated Supabase records. Export as print-ready PDF.
+            Generate verifiable agricultural reports from your authenticated Supabase records. Export as print-ready PDF via your browser's print dialog.
           </p>
         </div>
       </div>

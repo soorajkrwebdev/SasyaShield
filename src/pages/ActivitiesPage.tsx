@@ -18,6 +18,14 @@ export const ActivitiesPage: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Keep local filter in sync when global active farm changes
+  React.useEffect(() => {
+    if (selectedFarmId) {
+      setFarmFilter(selectedFarmId);
+      setCropFilter('');
+    }
+  }, [selectedFarmId]);
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activityToEdit, setActivityToEdit] = useState<CropActivity | null>(null);

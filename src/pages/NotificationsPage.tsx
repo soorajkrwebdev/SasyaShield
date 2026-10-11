@@ -6,7 +6,6 @@ import {
   Bell,
   CheckCheck,
   Trash2,
-  AlertCircle,
   Bug,
   Wheat,
   CloudSun,
@@ -57,7 +56,7 @@ export const NotificationsPage: React.FC = () => {
     const data = await fetchNotifications(user.id);
     setNotifications(data);
     setLoading(false);
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => { load(); }, [load]);
 

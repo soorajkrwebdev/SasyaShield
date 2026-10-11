@@ -15,6 +15,13 @@ export const CropsPage: React.FC = () => {
   const [farmFilter, setFarmFilter] = useState(selectedFarmId || '');
   const [stageFilter, setStageFilter] = useState('');
 
+  // Keep local filter in sync when global active farm changes
+  React.useEffect(() => {
+    if (selectedFarmId) {
+      setFarmFilter(selectedFarmId);
+    }
+  }, [selectedFarmId]);
+
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [cropToEdit, setCropToEdit] = useState<FarmCrop | null>(null);

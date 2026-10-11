@@ -1,0 +1,26 @@
+# Normalise line endings in the repository to LF on commit.
+# On Windows checkouts the working copy will still use CRLF unless you
+# have core.autocrlf=false.  Checked-in files will always be LF so that
+# CI tools on Linux/macOS never encounter CRLF.
+
+* text=auto eol=lf
+
+# Explicit binary patterns — never diff or change newlines.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.eot    binary
+*.otf    binary
+*.pdf    binary
+
+# SQL migration files — keep LF so PostgreSQL \n-terminated statements work.
+*.sql    text eol=lf
+
+# Vite / Node generated lock files
+package-lock.json text eol=lf

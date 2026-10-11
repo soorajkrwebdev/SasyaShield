@@ -10,9 +10,8 @@ import {
   Search,
   Trash2,
   AlertCircle,
-  IndianRupee,
 } from 'lucide-react';
-import { CropHarvest, HarvestQuality } from '../types';
+import { HarvestQuality } from '../types';
 
 // ─── Harvest Form Modal ───────────────────────────────────────────────────────
 interface HarvestModalProps {

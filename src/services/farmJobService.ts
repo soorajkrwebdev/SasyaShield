@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { FarmJob, JobInquiry } from '../types';
+import { FarmJob, JobInquiry, PublicFarmJob } from '../types';
 
 export interface CreateJobInput {
   farm_id: string;
@@ -32,14 +32,13 @@ export interface SubmitInquiryInput {
 export async function getPublicFarmJobs(filters?: {
   workType?: string;
   search?: string;
-}): Promise<FarmJob[]> {
+}): Promise<PublicFarmJob[]> {
   if (!supabase) return [];
 
   try {
     let query = supabase
-      .from('farm_jobs')
-      .select('*, farms(name)')
-      .eq('status', 'open')
+      .from('public_farm_jobs')
+      .select('id, title, location, work_type, start_date, end_date, workers_needed, wage_rate, wage_unit, description, contact_preference, status, farm_display_name, created_at')
       .order('created_at', { ascending: false });
 
     if (filters?.workType && filters.workType !== 'all') {
@@ -56,10 +55,7 @@ export async function getPublicFarmJobs(filters?: {
       return [];
     }
 
-    return (data || []).map((row: any) => ({
-      ...row,
-      farm_name: row.farms?.name || 'Local Farm',
-    }));
+    return (data || []) as PublicFarmJob[];
   } catch (err) {
     console.error('Failed to get public jobs:', err);
     return [];
@@ -252,12 +248,15 @@ export async function updateInquiryStatus(
   if (!supabase) return { error: 'Database not available' };
 
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('job_inquiries')
       .update({ status })
-      .eq('id', inquiryId);
+      .eq('id', inquiryId)
+      .select('id')
+      .maybeSingle();
 
     if (error) return { error: error.message };
+    if (!data) return { error: 'Inquiry not found or access denied.' };
     return {};
   } catch (err: any) {
     return { error: err.message };

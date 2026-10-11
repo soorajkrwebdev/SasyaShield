@@ -20,6 +20,10 @@ import {
   COMMODITY_ALIASES,
   MarketAnalysisResult,
 } from '../../services/marketService';
+import {
+  classifyMarketPriceFreshness,
+  parseMarketPriceDate,
+} from '../../services/marketFreshness';
 
 // All crops available in the alias dictionary
 const SUPPORTED_CROPS = Object.keys(COMMODITY_ALIASES);
@@ -52,7 +56,6 @@ export const MarketPage: React.FC = () => {
   const [result, setResult] = useState<MarketAnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAllRecords, setShowAllRecords] = useState(false);
-  const [lastFetched, setLastFetched] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,7 +66,6 @@ export const MarketPage: React.FC = () => {
       limit: 50,
     });
     setResult(data);
-    setLastFetched(new Date().toLocaleTimeString());
     setLoading(false);
   }, [selectedCrop, stateFilter]);
 
@@ -80,6 +82,7 @@ export const MarketPage: React.FC = () => {
       r.market.toLowerCase().includes(q) ||
       r.district.toLowerCase().includes(q) ||
       r.state.toLowerCase().includes(q) ||
+      (r.canonical_crop ?? r.crop).toLowerCase().includes(q) ||
       r.crop.toLowerCase().includes(q)
     );
   });
@@ -92,6 +95,8 @@ export const MarketPage: React.FC = () => {
   const availableStates = Array.from(
     new Set((result?.records ?? []).map(r => r.state)),
   ).sort();
+  const allDisplayedRecordsStale = displayedRecords.length > 0 &&
+    displayedRecords.every(record => classifyMarketPriceFreshness(record.price_date) === 'stale');
 
   const trendIcon =
     result?.trend === 'up' ? (
@@ -121,9 +126,6 @@ export const MarketPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="emerald" size="sm">AGMARKNET / DMI</Badge>
-          {lastFetched && (
-            <span className="text-[11px] text-slate-400">Updated {lastFetched}</span>
-          )}
         </div>
       </div>
 
@@ -249,6 +251,12 @@ export const MarketPage: React.FC = () => {
             </button>
           </div>
 
+          {!loading && allDisplayedRecordsStale && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800" role="status">
+              Market prices may be outdated. Latest available price dates are shown.
+            </div>
+          )}
+
           {/* Summary stats */}
           {result && result.historyCount > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -352,13 +360,13 @@ export const MarketPage: React.FC = () => {
                       <th className="text-right p-3 font-bold text-slate-600">Min (₹)</th>
                       <th className="text-right p-3 font-bold text-slate-600">Modal (₹)</th>
                       <th className="text-right p-3 font-bold text-slate-600">Max (₹)</th>
-                      <th className="text-left p-3 font-bold text-slate-600">Date</th>
+                      <th className="text-left p-3 font-bold text-slate-600">Price / Fetch</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {visibleRecords.map(r => (
                       <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-3 font-semibold text-slate-800">{r.crop}</td>
+                        <td className="p-3 font-semibold text-slate-800">{r.canonical_crop ?? r.crop}</td>
                         <td className="p-3 text-slate-700">{r.market}</td>
                         <td className="p-3 text-slate-500">
                           {r.district}, {r.state}
@@ -376,7 +384,13 @@ export const MarketPage: React.FC = () => {
                             ? r.max_price.toLocaleString('en-IN')
                             : '—'}
                         </td>
-                        <td className="p-3 text-slate-400">{r.price_date}</td>
+                        <td className="p-3 text-slate-500">
+                          <div>Price date: {formatPriceDate(r.price_date)}</div>
+                          <div>Fetched: {formatFetchedAt(r.fetched_at)}</div>
+                          <div className={getFreshnessClass(r.price_date)}>
+                            {getFreshnessLabel(r.price_date)}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -443,3 +457,41 @@ export const MarketPage: React.FC = () => {
     </div>
   );
 };
+
+function formatPriceDate(value: string | null | undefined): string {
+  const date = parseMarketPriceDate(value);
+  if (!date) return 'Unknown';
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+function formatFetchedAt(value: string | null | undefined): string {
+  if (!value) return 'Unknown';
+  const fetchedAt = new Date(value);
+  if (!Number.isFinite(fetchedAt.getTime())) return 'Unknown';
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(fetchedAt);
+}
+
+function getFreshnessLabel(priceDate: string): string {
+  const freshness = classifyMarketPriceFreshness(priceDate);
+  if (freshness === 'recent') return 'Recent';
+  if (freshness === 'stale') return 'Stale';
+  return 'Unknown';
+}
+
+function getFreshnessClass(priceDate: string): string {
+  const freshness = classifyMarketPriceFreshness(priceDate);
+  if (freshness === 'recent') return 'text-emerald-700';
+  if (freshness === 'stale') return 'text-amber-700';
+  return 'text-slate-400';
+}

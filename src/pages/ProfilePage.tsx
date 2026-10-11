@@ -10,6 +10,7 @@ export const ProfilePage: React.FC = () => {
   const { profile, updateProfile, connection } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -24,8 +25,9 @@ export const ProfilePage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setSuccess(false);
+    setSaveError(null);
 
-    await updateProfile({
+    const res = await updateProfile({
       full_name: fullName.trim(),
       phone: phone.trim() || undefined,
       state,
@@ -36,8 +38,12 @@ export const ProfilePage: React.FC = () => {
     });
 
     setLoading(false);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    if (res.error) {
+      setSaveError(res.error);
+    } else {
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    }
   };
 
   const handleCopyEnvSnippet = () => {
@@ -68,7 +74,22 @@ export const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-5">
+        {saveError && (
+          <div className="p-3 mb-5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700">
+            {saveError}
+          </div>
+        )}
+
+        {!profile ? (
+          <div className="p-5 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
+            <p className="font-semibold mb-1">Farmer profile is still loading.</p>
+            <p className="text-xs">
+              Your profile row is stored in Supabase under your authenticated user id and should appear automatically
+              within a moment. Refreshing the page forces a fresh authenticated profile reload.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSave} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Farmer Full Name"
@@ -135,6 +156,7 @@ export const ProfilePage: React.FC = () => {
             </Button>
           </div>
         </form>
+        )}
       </div>
 
       {/* Supabase PostgreSQL Backend Status & Config Card */}

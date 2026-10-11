@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -16,7 +16,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { FarmJob } from '../../types';
+import { FarmJob, PublicFarmJob } from '../../types';
 import {
   getPublicFarmJobs,
   getFarmerJobs,
@@ -27,20 +27,24 @@ import { CreateJobModal } from '../../components/farm-work/CreateJobModal';
 import { JobInquiryModal } from '../../components/farm-work/JobInquiryModal';
 import { ViewInquiriesModal } from '../../components/farm-work/ViewInquiriesModal';
 
-export const FarmWorkBoardPage: React.FC = () => {
+export interface FarmWorkBoardPageProps {
+  onGoToAuth?: (mode: 'login' | 'register') => void;
+}
+
+export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth }) => {
   const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'public' | 'my-jobs'>('public');
   const [q, setQ] = useState('');
   const [workTypeFilter, setWorkTypeFilter] = useState('all');
 
-  const [publicJobs, setPublicJobs] = useState<FarmJob[]>([]);
+  const [publicJobs, setPublicJobs] = useState<PublicFarmJob[]>([]);
   const [myJobs, setMyJobs] = useState<FarmJob[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedJobForInquiry, setSelectedJobForInquiry] = useState<FarmJob | null>(null);
+  const [selectedJobForInquiry, setSelectedJobForInquiry] = useState<PublicFarmJob | null>(null);
   const [selectedJobForInquiries, setSelectedJobForInquiries] = useState<FarmJob | null>(null);
   const [showAllInquiriesModal, setShowAllInquiriesModal] = useState(false);
 
@@ -56,7 +60,7 @@ export const FarmWorkBoardPage: React.FC = () => {
     'Other',
   ];
 
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     setLoading(true);
     const pub = await getPublicFarmJobs();
     setPublicJobs(pub);
@@ -66,27 +70,29 @@ export const FarmWorkBoardPage: React.FC = () => {
       setMyJobs(mine);
     }
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchJobs();
-  }, [user]);
+  }, [fetchJobs]);
 
   const displayedJobs = activeTab === 'public' ? publicJobs : myJobs;
 
   const filteredJobs = displayedJobs.filter(job => {
+    const farmName = ('farm_name' in job && job.farm_name)
+      || ('farm_display_name' in job && job.farm_display_name);
     const matchesSearch =
       job.title.toLowerCase().includes(q.toLowerCase()) ||
       job.description.toLowerCase().includes(q.toLowerCase()) ||
       (job.location && job.location.toLowerCase().includes(q.toLowerCase())) ||
-      (job.farm_name && job.farm_name.toLowerCase().includes(q.toLowerCase()));
+      (farmName && farmName.toLowerCase().includes(q.toLowerCase()));
     const matchesType = workTypeFilter === 'all' || job.work_type === workTypeFilter;
     return matchesSearch && matchesType;
   });
 
   const handleCloseJob = async (jobId: string) => {
     if (confirm('Are you sure you want to mark this position as closed?')) {
-      await updateFarmJob(jobId, { status: 'closed' });
+      await updateFarmJob(jobId, { status: 'cancelled' });
       fetchJobs();
     }
   };
@@ -106,6 +112,7 @@ export const FarmWorkBoardPage: React.FC = () => {
         return <Badge variant="amber" size="sm">In Progress</Badge>;
       case 'filled':
         return <Badge variant="blue" size="sm">Filled</Badge>;
+      case 'cancelled':
       case 'closed':
       default:
         return <Badge variant="slate" size="sm">Closed</Badge>;
@@ -144,7 +151,11 @@ export const FarmWorkBoardPage: React.FC = () => {
             size="sm"
             onClick={() => {
               if (!user) {
-                alert('Please sign in as a farmer to post a job listing.');
+                if (onGoToAuth) {
+                  onGoToAuth('login');
+                } else {
+                  alert('Please sign in as a farmer to post a job listing.');
+                }
                 return;
               }
               setIsCreateModalOpen(true);
@@ -303,7 +314,9 @@ export const FarmWorkBoardPage: React.FC = () => {
                       </div>
                       <h3 className="font-bold text-base text-slate-800">{job.title}</h3>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        {job.farm_name || 'Verified Farm'} • {job.location}
+                        {('farm_name' in job && job.farm_name)
+                          || ('farm_display_name' in job && job.farm_display_name)
+                          || 'Verified Farm'} • {job.location}
                       </p>
                     </div>
 
@@ -352,16 +365,16 @@ export const FarmWorkBoardPage: React.FC = () => {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      {activeTab === 'my-jobs' || (user && job.user_id === user.id) ? (
+                      {activeTab === 'my-jobs' || (user && myJobs.some(ownedJob => ownedJob.id === job.id)) ? (
                         <>
                           <Button
                             size="sm"
                             variant="outline"
                             className="text-xs"
-                            onClick={() => setSelectedJobForInquiries(job)}
+                            onClick={() => setSelectedJobForInquiries(myJobs.find(ownedJob => ownedJob.id === job.id) || null)}
                           >
                             <Eye className="w-3.5 h-3.5 mr-1" />
-                            Inquiries ({job.inquiry_count || 0})
+                            Inquiries ({('inquiry_count' in job ? job.inquiry_count : undefined) || 0})
                           </Button>
                           {job.status === 'open' && (
                             <Button

@@ -49,7 +49,11 @@ function verificationBadgeVariant(status: AdvisoryVerificationStatus): 'emerald'
   }
 }
 
-export const PestPage: React.FC = () => {
+export interface PestPageProps {
+  onNavigateToOrganic?: () => void;
+}
+
+export const PestPage: React.FC<PestPageProps> = ({ onNavigateToOrganic }) => {
   const {
     farms, crops, pestObservations, ipmRecords, pesticideApplications,
     pesticideAdvisories, pestFollowUps, organicInputs,
@@ -74,8 +78,15 @@ export const PestPage: React.FC = () => {
   };
 
   const highSeverity = pestObservations.filter(o => o.severity === 'high' || o.severity === 'critical').length;
-  const openFollowUps = pestFollowUps.filter((f: PestFollowUp) => f.outcome === 'unknown').length
-    + pesticideApplications.filter(a => a.follow_up_date).length;
+  // Scheduled pesticide applications that do NOT yet have an associated pest_follow_up
+  const pendingAppFollowUps = pesticideApplications.filter(a => {
+    if (!a.follow_up_date) return false;
+    return !pestFollowUps.some(f => f.pesticide_application_id === a.id);
+  });
+  // Recorded follow-ups with unresolved/unknown outcome
+  const unresolvedFollowUps = pestFollowUps.filter((f: PestFollowUp) => f.outcome === 'unknown');
+  // Total open follow-ups
+  const openFollowUps = pendingAppFollowUps.length + unresolvedFollowUps.length;
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   const recentApps = pesticideApplications.filter(a => new Date(a.application_date) >= sixMonthsAgo).length;
@@ -189,7 +200,19 @@ export const PestPage: React.FC = () => {
         <div className="flex gap-2 flex-wrap">
           <Button variant="primary" size="sm" onClick={() => scrollTo('record-observation')}>Record Observation</Button>
           <Button variant="outline" size="sm" onClick={() => scrollTo('advisory')}>Open Pesticide Advisory</Button>
-          <Button variant="outline" size="sm" icon={<Leaf className="w-4 h-4 text-emerald-600" />} onClick={() => { window.location.hash = '#/organic-farming'; window.scrollTo({ top: 0 }); }}>Explore Organic Inputs</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Leaf className="w-4 h-4 text-emerald-600" />}
+            onClick={() => {
+              if (onNavigateToOrganic) {
+                onNavigateToOrganic();
+              }
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            Explore Organic Inputs
+          </Button>
         </div>
       </section>
 
@@ -284,7 +307,19 @@ export const PestPage: React.FC = () => {
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Button variant="secondary" size="sm" onClick={() => openLogLevel(step.level as AdvisoryLevel)}>Log this IPM level</Button>
                       {(step.level === 'biological' || step.level === 'botanical') && relatedOrganic(step.level).map((chip, i) => (
-                        <button key={i} onClick={() => { window.location.hash = '#/organic-farming'; }} className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-full cursor-pointer" title="View in Organic Inputs">{chip}</button>
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            if (onNavigateToOrganic) {
+                              onNavigateToOrganic();
+                            }
+                          }}
+                          className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 px-2.5 py-1 rounded-full cursor-pointer transition-colors"
+                          title="View in Organic Inputs"
+                        >
+                          {chip}
+                        </button>
                       ))}
                     </div>
                   )}
