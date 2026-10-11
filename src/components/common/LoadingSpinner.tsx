@@ -9,7 +9,7 @@ export const LoadingSpinner: React.FC<{ message?: string }> = ({ message = 'Load
           <div className="w-2 h-2 bg-emerald-600 rounded-full animate-ping" />
         </div>
       </div>
-      <p className="mt-4 text-xs font-medium text-slate-500 tracking-wide">{message}</p>
+      <p className="mt-4 text-xs font-medium text-slate-500 tracking-wide dark:text-slate-400">{message}</p>
     </div>
   );
 };

@@ -99,8 +99,8 @@ const MainAppContent: React.FC = () => {
 
   if (!user && authView === 'farm-work') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans dark:bg-slate-950 dark:text-slate-100">
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs dark:bg-slate-900/95 dark:border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -130,7 +130,7 @@ const MainAppContent: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setAuthView('login')}
-                className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+                className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-xl transition-colors cursor-pointer dark:text-slate-200"
               >
                 Farmer Login
               </button>
@@ -146,10 +146,10 @@ const MainAppContent: React.FC = () => {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
-          <FarmWorkBoardPage onGoToAuth={(mode) => setAuthView(mode)} />
+          <FarmWorkBoardPage onGoToAuth={(mode) => setAuthView(mode)} onBackToHome={() => setAuthView('none')} />
         </main>
 
-        <footer className="mt-auto py-6 bg-white border-t border-slate-200 text-slate-400 text-xs text-center">
+        <footer className="mt-auto py-6 bg-white border-t border-slate-200 text-slate-400 text-xs text-center dark:bg-slate-900 dark:border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500">
             <p>© {new Date().getFullYear()} SmartFarm 2.0 • Public Farm Work Board</p>
             <p className="text-[11px] text-slate-400">Direct farm-to-community labor coordination • Zero intermediary fees</p>

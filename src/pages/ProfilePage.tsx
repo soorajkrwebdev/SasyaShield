@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/common/Input';
 import { Select } from '../components/common/Select';
 import { Button } from '../components/common/Button';
 import { FarmingType } from '../types';
+import { getDistrictsForState, getStateNames, isValidStateDistrict } from '../data/indianStates';
 import { Database, Check, Copy } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -13,19 +14,33 @@ export const ProfilePage: React.FC = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const stateOptions = useMemo(() => getStateNames(), []);
+
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
-  const [state, setState] = useState(profile?.state || 'Karnataka');
-  const [district, setDistrict] = useState(profile?.district || 'Shimoga');
+  const [state, setState] = useState(profile?.state || '');
+  const [district, setDistrict] = useState(profile?.district || '');
+  const districtOptions = useMemo(() => getDistrictsForState(state), [state]);
   const [village, setVillage] = useState(profile?.village || 'Thirthahalli');
   const [language, setLanguage] = useState(profile?.preferred_language || 'en');
   const [farmingType, setFarmingType] = useState<FarmingType>(profile?.farming_type || 'organic');
+
+  const handleStateChange = (next: string) => {
+    setState(next);
+    setDistrict('');
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setSuccess(false);
     setSaveError(null);
+
+    if (state && district && !isValidStateDistrict(state, district)) {
+      setSaveError('The selected district does not belong to the selected state. Please choose again.');
+      setLoading(false);
+      return;
+    }
 
     const res = await updateProfile({
       full_name: fullName.trim(),
@@ -106,15 +121,25 @@ export const ProfilePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input
-              label="State"
+            <Select
+              label="State / Union Territory"
               value={state}
-              onChange={e => setState(e.target.value)}
+              onChange={e => handleStateChange(e.target.value)}
+              options={[
+                { value: '', label: 'Select state/UT' },
+                ...stateOptions.map(s => ({ value: s, label: s })),
+              ]}
             />
-            <Input
+            <Select
               label="District"
               value={district}
               onChange={e => setDistrict(e.target.value)}
+              disabled={!state}
+              helperText={!state ? 'Select a state first' : undefined}
+              options={[
+                { value: '', label: 'Select district' },
+                ...districtOptions.map(d => ({ value: d, label: d })),
+              ]}
             />
             <Input
               label="Taluk / Village"

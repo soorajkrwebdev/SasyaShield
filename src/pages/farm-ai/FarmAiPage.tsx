@@ -302,16 +302,16 @@ export const FarmAiPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] max-w-7xl mx-auto px-4 py-4 space-y-4">
+    <div className="flex flex-col h-[calc(100dvh-5rem)] min-h-[480px] w-full min-w-0 max-w-full mx-auto px-2 sm:px-4 py-4 gap-4 overflow-x-hidden overflow-x-clip">
       {/* Top Banner: Farm Selection & Safety Mandate */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-lg">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0 w-full max-w-full overflow-hidden">
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-lg shrink-0">
             <Bot className="w-6 h-6" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-lg font-bold text-gray-900">Farm AI Intelligence Layer</h1>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg font-bold text-gray-900 break-words">Farm AI Intelligence Layer</h1>
               <Badge variant="emerald">Farm-Aware & Grounded</Badge>
             </div>
             <p className="text-xs text-gray-500">
@@ -341,7 +341,7 @@ export const FarmAiPage: React.FC = () => {
       </div>
 
       {/* Main Chat Workspace with Sidebar */}
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 min-w-0 w-full max-w-full">
         {/* Left Sidebar: Multi-Conversation History */}
         <div className="w-64 bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col hidden lg:flex">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
@@ -412,18 +412,18 @@ export const FarmAiPage: React.FC = () => {
         </div>
 
         {/* Right Chat Column */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col min-h-0">
+        <div className="flex-1 min-w-0 w-full max-w-full bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col min-h-[420px] max-h-full overflow-hidden">
           {/* Chat Messages Viewport */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-4 overscroll-contain">
             {messages.map((m, idx) => {
               const isUser = m.role === 'user';
               return (
                 <div
                   key={idx}
-                  className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+                  className={`flex min-w-0 ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-3xl rounded-xl p-4 ${
+                    className={`min-w-0 w-full sm:max-w-3xl rounded-xl p-4 break-words overflow-wrap-anywhere ${
                       isUser
                         ? 'bg-emerald-600 text-white rounded-br-none shadow-sm'
                         : 'bg-gray-50 border border-gray-200 text-gray-800 rounded-bl-none shadow-xs'
@@ -450,7 +450,7 @@ export const FarmAiPage: React.FC = () => {
                     )}
 
                     {/* Content */}
-                    <div className="text-xs md:text-sm whitespace-pre-wrap leading-relaxed space-y-2">
+                    <div className="text-xs md:text-sm whitespace-pre-wrap leading-relaxed space-y-2 break-words overflow-wrap-anywhere min-w-0">
                       {m.content}
                     </div>
 
@@ -482,14 +482,14 @@ export const FarmAiPage: React.FC = () => {
                           <Building2 className="w-3.5 h-3.5 text-emerald-600" />
                           <span>Grounded Institutional Sources:</span>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-1.5 min-w-0">
                           {m.sources.map((s, srcIdx) => (
                             <div
                               key={srcIdx}
-                              className="inline-flex items-center space-x-1.5 bg-emerald-50/80 border border-emerald-200/80 px-2 py-1 rounded text-[11px] text-emerald-900"
+                              className="inline-flex min-w-0 max-w-full items-center space-x-1.5 bg-emerald-50/80 border border-emerald-200/80 px-2 py-1 rounded text-[11px] text-emerald-900"
                             >
-                              <span className="font-semibold">{s.organization}</span>
-                              <span className="text-emerald-700/80">— {s.document}</span>
+                              <span className="font-semibold break-words">{s.organization}</span>
+                              <span className="text-emerald-700/80 break-words break-all">— {s.document}</span>
                               {s.reference && (
                                 <span className="text-emerald-600 text-[10px]">({s.reference})</span>
                               )}
@@ -550,27 +550,35 @@ export const FarmAiPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Input Box */}
-          <div className="p-3 border-t border-gray-200 bg-white">
+          {/* Input Box — sticky composer that always fits the viewport width */}
+          <div className="p-2 sm:p-3 border-t border-gray-200 bg-white shrink-0 min-w-0 w-full max-w-full">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSend();
               }}
-              className="flex items-center space-x-2"
+              className="flex items-end gap-2 min-w-0 w-full max-w-full"
             >
-              <input
-                type="text"
+              <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                rows={1}
                 placeholder="Ask about your pest observations, IPM decisions, pesticide safety, organic inputs..."
                 disabled={thinking}
-                className="flex-1 text-xs md:text-sm border border-gray-300 rounded-lg px-3.5 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:bg-gray-50"
+                aria-label="Ask Farm AI"
+                className="flex-1 min-w-0 w-full max-w-full resize-none overflow-y-auto max-h-32 text-xs md:text-sm border border-gray-300 rounded-lg px-3.5 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:bg-gray-50 break-words"
               />
               <Button
                 type="submit"
                 disabled={thinking || !input.trim()}
-                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                aria-label={thinking ? 'Sending…' : 'Send message'}
+                className="px-3 sm:px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
               >
                 {thinking ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

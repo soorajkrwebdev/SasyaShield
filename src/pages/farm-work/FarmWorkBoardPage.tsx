@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/ErrorState';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import {
@@ -14,6 +16,8 @@ import {
   MessageSquare,
   Eye,
   Trash2,
+  SearchX,
+  Home,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FarmJob, PublicFarmJob } from '../../types';
@@ -29,9 +33,10 @@ import { ViewInquiriesModal } from '../../components/farm-work/ViewInquiriesModa
 
 export interface FarmWorkBoardPageProps {
   onGoToAuth?: (mode: 'login' | 'register') => void;
+  onBackToHome?: () => void;
 }
 
-export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth }) => {
+export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth, onBackToHome }) => {
   const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'public' | 'my-jobs'>('public');
@@ -41,6 +46,7 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
   const [publicJobs, setPublicJobs] = useState<PublicFarmJob[]>([]);
   const [myJobs, setMyJobs] = useState<FarmJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -62,19 +68,41 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
-    const pub = await getPublicFarmJobs();
-    setPublicJobs(pub);
+    setLoadError(null);
+    try {
+      const pub = await getPublicFarmJobs();
+      setPublicJobs(pub);
 
-    if (user) {
-      const mine = await getFarmerJobs(user.id);
-      setMyJobs(mine);
+      if (user) {
+        try {
+          const mine = await getFarmerJobs(user.id);
+          setMyJobs(mine);
+        } catch (mineErr: any) {
+          // Farmer-tab failure must not blank the public board.
+          console.warn('[FarmWorkBoard] farmer jobs failed:', mineErr?.message);
+          setMyJobs([]);
+        }
+      } else {
+        setMyJobs([]);
+      }
+    } catch (err: any) {
+      // Genuine fetch failure — distinct from "zero jobs".
+      setPublicJobs([]);
+      setLoadError(err?.message || 'Could not load farm jobs. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [user]);
 
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  const hasActiveFilters = q.trim() !== '' || workTypeFilter !== 'all';
+  const clearFilters = () => {
+    setQ('');
+    setWorkTypeFilter('all');
+  };
 
   const displayedJobs = activeTab === 'public' ? publicJobs : myJobs;
 
@@ -288,10 +316,17 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
 
           {/* Job listings */}
           {loading ? (
-            <div className="py-16 text-center text-slate-500">
-              <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              Loading farm work listings...
+            <div className="py-16 text-center text-slate-500" role="status" aria-live="polite">
+              <LoadingSpinner message="Loading farm work listings..." />
             </div>
+          ) : loadError ? (
+            <ErrorState
+              title="Could not load farm jobs"
+              description="We couldn't reach the farm work board. Check your connection and try again."
+              details={loadError}
+              onRetry={fetchJobs}
+              retryText="Retry"
+            />
           ) : filteredJobs.length > 0 ? (
             <div className="space-y-4">
               {filteredJobs.map(job => (
@@ -410,15 +445,28 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                 </div>
               ))}
             </div>
+          ) : hasActiveFilters ? (
+            <EmptyState
+              icon={<SearchX className="w-10 h-10 text-slate-400" />}
+              title="No jobs match your search."
+              description="Try a different keyword or category, or clear the filters to see all available work."
+              actionText="Clear Filters"
+              onAction={clearFilters}
+            />
+          ) : activeTab === 'my-jobs' ? (
+            <EmptyState
+              icon={<Briefcase className="w-10 h-10 text-slate-400" />}
+              title="No jobs posted yet"
+              description='Click "Post Farm Work" to create an opening for seasonal helpers or specialists.'
+            />
           ) : (
             <EmptyState
               icon={<Briefcase className="w-10 h-10 text-slate-400" />}
-              title={activeTab === 'my-jobs' ? 'No jobs posted yet' : 'No farm work posts found'}
-              description={
-                activeTab === 'my-jobs'
-                  ? 'Click "Post Farm Work" to create an opening for seasonal helpers or specialists.'
-                  : 'Check back soon or adjust your category and search filters.'
-              }
+              title="No Farm Jobs Listed Yet"
+              description="There are currently no farm work opportunities available. Please check again later."
+              actionText={onBackToHome ? 'Back to Home' : undefined}
+              onAction={onBackToHome}
+              actionIcon={onBackToHome ? <Home className="w-3.5 h-3.5" /> : undefined}
             />
           )}
         </div>

@@ -37,12 +37,12 @@ export const Header: React.FC<HeaderProps> = ({
   const [farmMenuOpen, setFarmMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between">
+    <header className="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between dark:bg-slate-900/90 dark:border-slate-800">
       {/* Left: Mobile Drawer Trigger + Active Farm Selector */}
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleMobileDrawer}
-          className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800"
           aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />
@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="relative">
           <button
             onClick={() => setFarmMenuOpen(!farmMenuOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80 text-left transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80 text-left transition-all cursor-pointer shadow-2xs dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
           >
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
               <Trees className="w-4 h-4" />

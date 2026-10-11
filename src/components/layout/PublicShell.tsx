@@ -26,8 +26,8 @@ export const PublicShell: React.FC<PublicShellProps> = ({ children }) => {
   const isActive = (to: string) => (to === '/' ? path === '/' : path.startsWith(to));
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+    <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 dark:bg-slate-900/90 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <Link to={PUBLIC_PATHS.landing} className="flex items-center gap-2.5 shrink-0">
             <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-sm">
@@ -104,7 +104,7 @@ export const PublicShell: React.FC<PublicShellProps> = ({ children }) => {
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">{children}</main>
 
-      <footer className="border-t border-slate-200/80 bg-white">
+      <footer className="border-t border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-[11px] text-slate-500 max-w-2xl leading-relaxed">
             SmartFarm 2.0 is a farm management and sustainable-agriculture intelligence platform. Agricultural

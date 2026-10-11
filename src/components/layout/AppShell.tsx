@@ -25,7 +25,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-slate-50/60 text-slate-800">
+    <div className="min-h-screen flex bg-slate-50/60 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
       {/* Desktop Sidebar */}
       <Sidebar currentTab={currentTab} onTabChange={onTabChange} />
 

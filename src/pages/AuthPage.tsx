@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Select } from '../components/common/Select';
+import { getDistrictsForState, getStateNames, isValidStateDistrict } from '../data/indianStates';
 import { Leaf, Lock, Mail, User, Phone, ArrowLeft } from 'lucide-react';
 import { FarmingType } from '../types';
 
@@ -25,9 +26,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [state, setState] = useState('Karnataka');
-  const [district, setDistrict] = useState('Shimoga');
+  const [state, setState] = useState('');
+  const [district, setDistrict] = useState('');
   const [farmingType, setFarmingType] = useState<FarmingType>('organic');
+
+  const stateOptions = useMemo(() => getStateNames(), []);
+  const districtOptions = useMemo(() => getDistrictsForState(state), [state]);
+
+  const handleStateChange = (next: string) => {
+    setState(next);
+    setDistrict(''); // district must always belong to the selected state
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +51,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       }
       if (password.length < 6) {
         setError('Password should be at least 6 characters long.');
+        setLoading(false);
+        return;
+      }
+      if (!state) {
+        setError('Please select your state / union territory.');
+        setLoading(false);
+        return;
+      }
+      if (!district) {
+        setError('Please select your district.');
+        setLoading(false);
+        return;
+      }
+      if (!isValidStateDistrict(state, district)) {
+        setError('The selected district does not belong to the selected state. Please choose again.');
         setLoading(false);
         return;
       }
@@ -74,12 +98,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-slate-950">
       {/* Back button */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 mb-4">
         <button
           onClick={onBackToLanding}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer dark:text-slate-400 dark:hover:text-slate-100"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Landing Page</span>
@@ -177,18 +201,28 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
             {isRegister && (
               <>
-                <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    label="State"
-                    placeholder="Karnataka"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Select
+                    label="State / Union Territory"
+                    required
                     value={state}
-                    onChange={e => setState(e.target.value)}
+                    onChange={e => handleStateChange(e.target.value)}
+                    options={[
+                      { value: '', label: 'Select state/UT' },
+                      ...stateOptions.map(s => ({ value: s, label: s })),
+                    ]}
                   />
-                  <Input
+                  <Select
                     label="District"
-                    placeholder="Shimoga"
+                    required
                     value={district}
                     onChange={e => setDistrict(e.target.value)}
+                    disabled={!state}
+                    helperText={!state ? 'Select a state first' : undefined}
+                    options={[
+                      { value: '', label: 'Select district' },
+                      ...districtOptions.map(d => ({ value: d, label: d })),
+                    ]}
                   />
                 </div>
 

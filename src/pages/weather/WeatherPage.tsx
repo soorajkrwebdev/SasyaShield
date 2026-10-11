@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useFarmData } from '../../contexts/FarmContext';
 import { useWeather } from '../../hooks/useWeather';
+import { useReverseGeocode } from '../../hooks/useReverseGeocode';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import {
@@ -195,6 +196,18 @@ export const WeatherPage: React.FC = () => {
     coords?.longitude,
   );
 
+  // Readable locality for the active coordinates (cached Nominatim lookup).
+  // Weather fetching still uses raw coordinates — the label never affects it.
+  const farmLocalityFallback = useMemo(() => {
+    if (locationSource !== 'farm' || !selectedFarm) return null;
+    const parts = [selectedFarm.location].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : selectedFarm.name;
+  }, [locationSource, selectedFarm]);
+  const {
+    displayName: localityName,
+    loading: localityLoading,
+  } = useReverseGeocode(coords?.latitude, coords?.longitude, farmLocalityFallback);
+
   const hints = weather
     ? getAgriculturalHints(
         weather.precipitation,
@@ -304,20 +317,35 @@ export const WeatherPage: React.FC = () => {
 
         {locationStatus === 'ready' && coords && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-slate-600">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>
+            <div className="flex items-start gap-2 min-w-0">
+              <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span className="min-w-0">
                 {locationSource === 'farm' && selectedFarm ? (
                   <>
-                    Farm Coordinates for <span className="font-semibold text-slate-800">{selectedFarm.name}</span>
+                    <span className="block font-semibold text-slate-800 break-words">
+                      {selectedFarm.name}
+                    </span>
+                    <span className="block text-slate-600 break-words">
+                      {localityLoading ? (
+                        'Resolving location name…'
+                      ) : localityName ? (
+                        localityName
+                      ) : (
+                        farmLocalityFallback || 'Location name unavailable'
+                      )}
+                    </span>
                   </>
                 ) : (
-                  'Device Location'
+                  <span className="block font-semibold text-slate-800 break-words">
+                    {localityLoading
+                      ? 'Resolving your location…'
+                      : localityName || 'Device Location'}
+                  </span>
                 )}
               </span>
-              <span className="text-slate-400">·</span>
-              <span className="font-medium text-slate-700">
-                Lat: {coords.latitude.toFixed(4)}, Lon: {coords.longitude.toFixed(4)}
+              <span className="text-slate-400 shrink-0">·</span>
+              <span className="font-medium text-slate-500 text-xs shrink-0" title="Technical coordinates used for the Open-Meteo forecast">
+                {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
               </span>
             </div>
 

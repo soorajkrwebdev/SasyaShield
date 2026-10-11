@@ -27,39 +27,35 @@ export interface SubmitInquiryInput {
 }
 
 /**
- * Public & Farmer: Fetch list of open farm jobs for the public work board
+ * Public & Farmer: Fetch list of open farm jobs for the public work board.
+ * Throws on database/network failure so callers can distinguish
+ * "zero jobs" (empty array) from "failed request" (exception).
  */
 export async function getPublicFarmJobs(filters?: {
   workType?: string;
   search?: string;
 }): Promise<PublicFarmJob[]> {
-  if (!supabase) return [];
+  if (!supabase) throw new Error('Database service is not configured.');
 
-  try {
-    let query = supabase
-      .from('public_farm_jobs')
-      .select('id, title, location, work_type, start_date, end_date, workers_needed, wage_rate, wage_unit, description, contact_preference, status, farm_display_name, created_at')
-      .order('created_at', { ascending: false });
+  let query = supabase
+    .from('public_farm_jobs')
+    .select('id, title, location, work_type, start_date, end_date, workers_needed, wage_rate, wage_unit, description, contact_preference, status, farm_display_name, created_at')
+    .order('created_at', { ascending: false });
 
-    if (filters?.workType && filters.workType !== 'all') {
-      query = query.eq('work_type', filters.workType);
-    }
-
-    if (filters?.search) {
-      query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,location.ilike.%${filters.search}%`);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      console.warn('Notice loading public farm jobs:', error.message);
-      return [];
-    }
-
-    return (data || []) as PublicFarmJob[];
-  } catch (err) {
-    console.error('Failed to get public jobs:', err);
-    return [];
+  if (filters?.workType && filters.workType !== 'all') {
+    query = query.eq('work_type', filters.workType);
   }
+
+  if (filters?.search) {
+    query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,location.ilike.%${filters.search}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    throw new Error(error.message || 'Could not load public farm jobs.');
+  }
+
+  return (data || []) as PublicFarmJob[];
 }
 
 /**
