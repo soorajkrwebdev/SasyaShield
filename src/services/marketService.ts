@@ -4,8 +4,10 @@ import {
   getCommoditySearchTerms,
   mapMarketPriceRow,
 } from './marketCommodityMapping';
+import { maxIsoTimestamp, type MarketPriceLoadStatus } from './marketResultSummary';
 
 export { COMMODITY_ALIASES, getCommoditySearchTerms } from './marketCommodityMapping';
+export type { MarketPriceLoadStatus } from './marketResultSummary';
 
 export interface CommodityMapping {
   standardName: string;
@@ -29,6 +31,43 @@ export interface MarketAnalysisResult {
   trend: 'up' | 'down' | 'stable' | 'insufficient_data';
   latestPrice: MarketPriceRecord | null;
   source: string;
+  /**
+   * Load outcome so callers can distinguish a genuine "no records" state from a
+   * failed database read. Previously both collapsed into a "No records found"
+   * message, which misrepresented errors as empty results.
+   */
+  status: MarketPriceLoadStatus;
+  /**
+   * The newest source (arrival) price date present in the loaded records, or null.
+   * This is the date the price actually refers to — it is intentionally distinct
+   * from latestFetchedAt, which is only when the row was imported.
+   */
+  latestSourcePriceDate: string | null;
+  /**
+   * The most recent fetch/import timestamp present in the loaded records, or null.
+   * Reflects when the upstream data was last synchronized into the database; it is
+   * NOT the date the price itself refers to.
+   */
+  latestFetchedAt: string | null;
+}
+
+function emptyResult(
+  status: MarketPriceLoadStatus,
+  source: string,
+): MarketAnalysisResult {
+  return {
+    records: [],
+    averageModalPrice: null,
+    minObservedPrice: null,
+    maxObservedPrice: null,
+    historyCount: 0,
+    trend: 'insufficient_data',
+    latestPrice: null,
+    source,
+    status,
+    latestSourcePriceDate: null,
+    latestFetchedAt: null,
+  };
 }
 
 /**
@@ -40,16 +79,7 @@ export async function fetchMarketPrices(
   const limit = filters.limit || 50;
 
   if (!supabase) {
-    return {
-      records: [],
-      averageModalPrice: null,
-      minObservedPrice: null,
-      maxObservedPrice: null,
-      historyCount: 0,
-      trend: 'insufficient_data',
-      latestPrice: null,
-      source: 'Database not configured',
-    };
+    return emptyResult('unconfigured', 'Database not configured');
   }
 
   try {
@@ -79,32 +109,14 @@ export async function fetchMarketPrices(
     const { data, error } = await query;
 
     if (error) {
-      console.warn('Notice querying market_prices:', error.message);
-      return {
-        records: [],
-        averageModalPrice: null,
-        minObservedPrice: null,
-        maxObservedPrice: null,
-        historyCount: 0,
-        trend: 'insufficient_data',
-        latestPrice: null,
-        source: 'AGMARKNET / DMI (No records found)',
-      };
+      console.warn('Error querying market_prices:', error.message);
+      return emptyResult('error', 'AGMARKNET / DMI (database read failed)');
     }
 
     const records: MarketPriceRecord[] = (data || []).map((row: any) => mapMarketPriceRow(row));
 
     if (records.length === 0) {
-      return {
-        records: [],
-        averageModalPrice: null,
-        minObservedPrice: null,
-        maxObservedPrice: null,
-        historyCount: 0,
-        trend: 'insufficient_data',
-        latestPrice: null,
-        source: 'AGMARKNET / Directorate of Marketing & Inspection',
-      };
+      return emptyResult('empty', 'AGMARKNET / Directorate of Marketing & Inspection');
     }
 
     // Calculations
@@ -133,6 +145,11 @@ export async function fetchMarketPrices(
       else trend = 'stable';
     }
 
+    const latestSourcePriceDate = maxIsoTimestamp(
+      records.map((r) => r.price_date),
+    );
+    const latestFetchedAt = maxIsoTimestamp(records.map((r) => r.fetched_at));
+
     return {
       records,
       averageModalPrice,
@@ -142,18 +159,37 @@ export async function fetchMarketPrices(
       trend,
       latestPrice: records[0] || null,
       source: records[0]?.source_name || 'AGMARKNET / Directorate of Marketing & Inspection',
+      status: 'ok',
+      latestSourcePriceDate,
+      latestFetchedAt,
     };
   } catch (err: any) {
     console.error('Failed to retrieve market records:', err);
-    return {
-      records: [],
-      averageModalPrice: null,
-      minObservedPrice: null,
-      maxObservedPrice: null,
-      historyCount: 0,
-      trend: 'insufficient_data',
-      latestPrice: null,
-      source: 'Error loading market data',
-    };
+    return emptyResult('error', 'Error loading market data');
+  }
+}
+
+/**
+ * Distinct raw `crop` labels actually stored in market_prices (bounded scan).
+ * Sweep mode stores upstream labels verbatim, so this lets the Market page
+ * offer every imported commodity without a per-crop frontend change.
+ * Read-only; returns [] when unconfigured or on error.
+ */
+export async function fetchDistinctMarketCrops(limit = 1000): Promise<string[]> {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('market_prices')
+      .select('crop')
+      .order('crop', { ascending: true })
+      .limit(limit);
+    if (error || !data) return [];
+    return Array.from(new Set(
+      (data as Array<{ crop: unknown }>)
+        .map((row) => typeof row.crop === 'string' ? row.crop.trim() : '')
+        .filter(Boolean),
+    )).sort();
+  } catch {
+    return [];
   }
 }

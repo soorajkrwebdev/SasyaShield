@@ -3,13 +3,24 @@ import type { MarketPriceRecord } from '../types';
 export const COMMODITY_ALIASES: Record<string, string[]> = {
   Arecanut: ['Arecanut', 'Areca nut', 'Betelnut', 'Betel nut', 'Supari', 'Chali', 'Arecanut(Betelnut/Supari)'],
   Coconut: ['Coconut'],
+  Copra: ['Copra'],
   'Black Pepper': ['Black pepper'],
   Banana: ['Banana', 'Banana (Ripe)', 'Banana (Raw)', 'Yelakki', 'Nendran', 'Robusta'],
   Coffee: ['Coffee', 'Coffee Raw', 'Coffee Arabica', 'Coffee Robusta', 'Parchment'],
   Cardamom: ['Cardamom', 'Small Cardamom', 'Green Cardamom'],
   Ginger: ['Ginger', 'Ginger (Green)', 'Fresh Ginger', 'Dry Ginger'],
   Turmeric: ['Turmeric', 'Turmeric (Raw)', 'Turmeric Finger', 'Curcuma'],
-  Paddy: ['Paddy', 'Paddy (Dhan)', 'Rice', 'Basmati Paddy'],
+  // Sweep-mode stores raw upstream labels verbatim, so each AGMARKNET variant is
+  // its own key here. Paddy/Ragi grades are intentionally NOT folded into one
+  // another (and Rice is NOT equated with Paddy) until the upstream's exact
+  // strings are confirmed — the sweep import will reveal the true labels first.
+  Paddy: ['Paddy'],
+  'Paddy(Dhan)(Common)': ['Paddy(Dhan)(Common)'],
+  Ragi: ['Ragi'],
+  Onion: ['Onion'],
+  Potato: ['Potato'],
+  Maize: ['Maize'],
+  Tomato: ['Tomato'],
 };
 
 const VERIFIED_SOURCE_LABELS: Record<string, string[]> = {
@@ -30,7 +41,13 @@ export function getCommoditySearchTerms(cropName: string): string[] {
 
   for (const [standardName, aliases] of Object.entries(COMMODITY_ALIASES)) {
     if (standardName.toLowerCase() === normalized || aliases.some((alias) => alias.toLowerCase() === normalized)) {
-      return VERIFIED_SOURCE_LABELS[standardName] ?? [standardName, ...aliases];
+      const verified = VERIFIED_SOURCE_LABELS[standardName];
+      if (verified) return verified;
+      // Single-identity sweep labels (Tomato, Ragi, ...) must not duplicate.
+      if (aliases.length === 1 && aliases[0].toLowerCase() === standardName.toLowerCase()) {
+        return [standardName];
+      }
+      return [standardName, ...aliases];
     }
   }
 

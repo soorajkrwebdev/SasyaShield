@@ -45,7 +45,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { id: 'organic', label: 'Organic', icon: <Leaf className="w-5 h-5" /> },
   ];
 
-  const drawerItems: { id: NavigationTab; label: string; icon: React.ReactNode; phaseNotice?: string }[] = [
+  const drawerItems: { id: NavigationTab; label: string; icon: React.ReactNode; phaseNotice?: string; beta?: boolean }[] = [
     { id: 'activities', label: 'Farm Activities', icon: <ClipboardList className="w-4 h-4 text-emerald-600" /> },
     { id: 'inputs', label: 'Inputs Management', icon: <Package className="w-4 h-4 text-emerald-600" /> },
     { id: 'organic', label: 'Flagship: Organic Hub', icon: <Leaf className="w-4 h-4 text-emerald-600" /> },
@@ -54,7 +54,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { id: 'tests', label: 'Soil & Water Tests', icon: <TestTube className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 4' },
     { id: 'waste', label: 'Waste Management', icon: <Recycle className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 4' },
     { id: 'farm-work', label: 'Farm Work Board', icon: <Briefcase className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 6' },
-    { id: 'market', label: 'Market Prices', icon: <TrendingUp className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 5' },
+    { id: 'market', label: 'Market Prices', icon: <TrendingUp className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 5', beta: true },
     { id: 'analytics', label: 'Farm Analytics', icon: <BarChart3 className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 7' },
     { id: 'farm-ai', label: 'Farm AI Assistant', icon: <Bot className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 8' },
     { id: 'knowledge', label: 'Knowledge Hub', icon: <BookOpen className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 2' },
@@ -130,9 +130,14 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
+                    {item.beta && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200/70 shrink-0">
+                        Beta
+                      </span>
+                    )}
                   </div>
                   {item.phaseNotice && (
                     <span className={`text-[9px] px-1.5 py-0.5 rounded ${currentTab === item.id ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-500'}`}>

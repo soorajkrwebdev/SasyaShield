@@ -61,6 +61,8 @@ interface NavItem {
   icon: React.ReactNode;
   badge?: string;
   subItem?: boolean;
+  /** Render an inline "BETA" chip right after the label (experimental feature). */
+  beta?: boolean;
 }
 
 type SectionAccent = 'default' | 'crop-protection' | 'organic';
@@ -113,7 +115,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'tests', label: 'Soil & Water', icon: <TestTube className="w-4 h-4" /> },
       { id: 'weather', label: 'Weather', icon: <CloudSun className="w-4 h-4" /> },
-      { id: 'market', label: 'Market Prices', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'market', label: 'Market Prices', icon: <TrendingUp className="w-4 h-4" />, beta: true },
       { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
     ],
   },
@@ -219,9 +221,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
                           : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         {item.icon}
-                        <span>{item.label}</span>
+                        <span className="truncate">{item.label}</span>
+                        {item.beta && (
+                          <span
+                            className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200/70 shrink-0"
+                          >
+                            Beta
+                          </span>
+                        )}
                       </div>
                       {item.badge && (
                         <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>

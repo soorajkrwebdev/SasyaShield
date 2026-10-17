@@ -17,16 +17,47 @@ import {
 import { useFarmData } from '../../contexts/FarmContext';
 import {
   fetchMarketPrices,
+  fetchDistinctMarketCrops,
   COMMODITY_ALIASES,
   MarketAnalysisResult,
 } from '../../services/marketService';
 import {
   classifyMarketPriceFreshness,
   parseMarketPriceDate,
+  MARKET_PRICE_RECENT_MAX_AGE_DAYS,
 } from '../../services/marketFreshness';
 
-// All crops available in the alias dictionary
+// All crops available in the alias dictionary (plus any raw labels the sweep
+// import stored verbatim, discovered at runtime from the database).
 const SUPPORTED_CROPS = Object.keys(COMMODITY_ALIASES);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Date formatting helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function formatSourceDate(isoDate: string | null): string | null {
+  if (!isoDate) return null;
+  const parsed = parseMarketPriceDate(isoDate);
+  if (!parsed) return isoDate;
+  return parsed.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function formatFetchTimestamp(isoTimestamp: string | null): string | null {
+  if (!isoTimestamp) return null;
+  const parsed = new Date(isoTimestamp);
+  if (Number.isNaN(parsed.getTime())) return isoTimestamp;
+  return parsed.toLocaleString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -56,6 +87,10 @@ export const MarketPage: React.FC = () => {
   const [result, setResult] = useState<MarketAnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAllRecords, setShowAllRecords] = useState(false);
+  // Raw commodity labels actually present in market_prices (sweep stores new
+  // labels verbatim, so the dropdown grows without a code change per crop).
+  const [dbCrops, setDbCrops] = useState<string[]>([]);
+  const allCropOptions = Array.from(new Set([...SUPPORTED_CROPS, ...dbCrops])).sort();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,6 +108,16 @@ export const MarketPage: React.FC = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Discover stored commodity labels once so sweep-imported crops appear
+  // in the selector without a per-crop frontend change.
+  useEffect(() => {
+    let cancelled = false;
+    fetchDistinctMarketCrops().then((crops) => {
+      if (!cancelled) setDbCrops(crops);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // Filter records by search query (market / district text)
   const displayedRecords = (result?.records ?? []).filter(r => {
@@ -175,13 +220,13 @@ export const MarketPage: React.FC = () => {
             </div>
           )}
 
-          {/* All supported crops */}
+          {/* All supported crops (static aliases + sweep-discovered DB labels) */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
               All Supported Crops
             </p>
             <div className="space-y-1 max-h-64 overflow-y-auto">
-              {SUPPORTED_CROPS.map(crop => (
+              {allCropOptions.map(crop => (
                 <button
                   key={crop}
                   onClick={() => setSelectedCrop(crop)}
@@ -244,16 +289,32 @@ export const MarketPage: React.FC = () => {
             <button
               onClick={load}
               disabled={loading}
+              title="Reloads the latest records already stored in the database. It does not fetch new data from AGMARKNET."
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              Reload stored data
             </button>
           </div>
 
+          {!loading && result && result.status === 'ok' && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span>
+                <span className="font-semibold text-slate-700">Latest source price date:</span>{' '}
+                {formatSourceDate(result.latestSourcePriceDate) ?? '—'}
+              </span>
+              <span>
+                <span className="font-semibold text-slate-700">Data last imported:</span>{' '}
+                {formatFetchTimestamp(result.latestFetchedAt) ?? '—'}
+              </span>
+            </div>
+          )}
+
           {!loading && allDisplayedRecordsStale && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800" role="status">
-              Market prices may be outdated. Latest available price dates are shown.
+              These prices are marked stale because the newest available source price date shown is
+              more than {MARKET_PRICE_RECENT_MAX_AGE_DAYS} days old. They are the latest official
+              records stored — not live quotes.
             </div>
           )}
 
@@ -312,9 +373,28 @@ export const MarketPage: React.FC = () => {
             </div>
           )}
 
-          {/* No data */}
+          {/* No data / error / unconfigured */}
           {!loading && result && result.historyCount === 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 p-8">
+              {result.status === 'error' || result.status === 'unconfigured' ? (
+                <div className="flex items-start gap-3" role="alert">
+                  <AlertCircle className="w-6 h-6 text-rose-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 mb-1">
+                      Could not load market prices from the database
+                    </p>
+                    <p className="text-xs text-slate-600 mb-3">
+                      The database connection or query failed, so no stored prices could be shown.
+                      This is a data-source error, not an empty result set. Previously stored
+                      prices (if any) have not been changed.
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      <span className="font-semibold">Details:</span> {result.source}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+              <>
               <EmptyState
                 icon={<TrendingUp className="w-10 h-10 text-slate-300" />}
                 title={`No verified market data for ${selectedCrop}`}
@@ -344,6 +424,8 @@ export const MarketPage: React.FC = () => {
                   </a>
                 </div>
               </div>
+              </>
+              )}
             </div>
           )}
 
