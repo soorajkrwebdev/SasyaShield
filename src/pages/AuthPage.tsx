@@ -118,7 +118,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           {isRegister ? 'Farmer Registration' : 'Farmer Sign In'}
         </h2>
         <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
-          Smart Digital Management for Sustainable Agriculture
+          Sasyashield — Crop Protection Intelligence
         </p>
       </div>
 

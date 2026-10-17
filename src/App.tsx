@@ -33,6 +33,7 @@ import { ActivityFormModal } from './components/activities/ActivityFormModal';
 import { InputFormModal } from './components/inputs/InputFormModal';
 import { PestObservationModal } from './components/pest-ipm/PestObservationModal';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
+import sasyashieldLogo from './assets/sasyashield-logo.png';
 
 import { ArrowLeft, Leaf } from 'lucide-react';
 import { Button } from './components/common/Button';
@@ -113,15 +114,12 @@ const MainAppContent: React.FC = () => {
               </button>
               <div className="h-5 w-px bg-slate-200 hidden sm:block" />
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-sm shadow-emerald-700/20">
-                  <Leaf className="w-4 h-4 fill-white/20" />
-                </div>
+                <img src={sasyashieldLogo} alt="Sasyashield" className="h-8 w-auto rounded-xl" />
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-slate-900 tracking-tight text-base font-heading">SmartFarm</span>
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 uppercase tracking-wider">2.0</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-slate-900 tracking-tight text-base font-heading">Sasyashield</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 font-medium hidden sm:block">Public Community Work Board</p>
+                  <p className="text-[10px] text-slate-400 font-medium hidden sm:block">Crop Protection Intelligence</p>
                 </div>
               </div>
             </div>
@@ -151,7 +149,7 @@ const MainAppContent: React.FC = () => {
 
         <footer className="mt-auto py-6 bg-white border-t border-slate-200 text-slate-400 text-xs text-center dark:bg-slate-900 dark:border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500">
-            <p>© {new Date().getFullYear()} SmartFarm 2.0 • Public Farm Work Board</p>
+            <p>© {new Date().getFullYear()} Sasyashield • Public Farm Work Board</p>
             <p className="text-[11px] text-slate-400">Direct farm-to-community labor coordination • Zero intermediary fees</p>
           </div>
         </footer>

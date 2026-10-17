@@ -19,7 +19,7 @@ function readCache(key: string): string | null {
   const m = memCache.get(key);
   if (m && Date.now() - m.ts < CACHE_TTL) return m.name;
   try {
-    const raw = localStorage.getItem(`smartfarm_revgeo_${key}`);
+    const raw = localStorage.getItem(`sasyashield_revgeo_${key}`);
     if (raw) {
       const parsed = JSON.parse(raw) as CacheEntry;
       if (Date.now() - parsed.ts < CACHE_TTL) {
@@ -34,7 +34,7 @@ function readCache(key: string): string | null {
 function writeCache(key: string, name: string) {
   const entry = { name, ts: Date.now() };
   memCache.set(key, entry);
-  try { localStorage.setItem(`smartfarm_revgeo_${key}`, JSON.stringify(entry)); } catch { /* ignore */ }
+  try { localStorage.setItem(`sasyashield_revgeo_${key}`, JSON.stringify(entry)); } catch { /* ignore */ }
 }
 
 export function formatNominatimAddress(addr: any): string {

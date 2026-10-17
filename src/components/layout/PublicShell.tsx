@@ -1,5 +1,6 @@
 import React from 'react';
 import { Leaf, LayoutDashboard, LogIn, UserPlus } from 'lucide-react';
+import sasyashieldLogo from '../../assets/sasyashield-logo.png';
 import { Link, useRouter } from '../../lib/router';
 import { AUTH_PATHS, PUBLIC_PATHS } from '../../lib/routes';
 import { useAuth } from '../../contexts/AuthContext';
@@ -30,14 +31,9 @@ export const PublicShell: React.FC<PublicShellProps> = ({ children }) => {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 dark:bg-slate-900/90 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <Link to={PUBLIC_PATHS.landing} className="flex items-center gap-2.5 shrink-0">
-            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-sm">
-              <Leaf className="w-5 h-5" aria-hidden="true" />
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="font-bold text-slate-900 tracking-tight text-base font-heading">SmartFarm</span>
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
-                2.0
-              </span>
+            <img src={sasyashieldLogo} alt="Sasyashield" className="h-9 w-auto rounded-xl" />
+            <span className="flex items-center gap-2">
+              <span className="font-bold text-slate-900 tracking-tight text-base font-heading">Sasyashield</span>
             </span>
           </Link>
 
@@ -107,7 +103,7 @@ export const PublicShell: React.FC<PublicShellProps> = ({ children }) => {
       <footer className="border-t border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-[11px] text-slate-500 max-w-2xl leading-relaxed">
-            SmartFarm 2.0 is a farm management and sustainable-agriculture intelligence platform. Agricultural
+            Sasyashield is a farm management and sustainable-agriculture intelligence platform. Agricultural
             information shown here is attributed to its published source. The platform does not certify farms and does
             not replace official certification under NPOP (APEDA) or PGS-India, nor does it replace local extension or
             professional agronomic advice.

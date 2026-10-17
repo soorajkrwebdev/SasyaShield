@@ -746,7 +746,7 @@ export const AnalyticsPage: React.FC = () => {
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <span>Source: Farm records entered by farmer in SmartFarm 2.0.</span>
+          <span>Source: Farm records entered by farmer in Sasyashield.</span>
           <span className="text-emerald-400 font-medium">Active Data-Driven Monitoring</span>
         </div>
       </div>

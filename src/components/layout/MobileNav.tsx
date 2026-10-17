@@ -1,4 +1,5 @@
 import React from 'react';
+import sasyashieldLogo from '../../assets/sasyashield-logo.png';
 import {
   LayoutDashboard,
   Trees,
@@ -103,9 +104,12 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-200">
             {/* Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-slate-900 font-heading">Agricultural Modules</h3>
-                <p className="text-xs text-slate-500">SmartFarm 2.0</p>
+              <div className="flex items-center gap-2">
+                <img src={sasyashieldLogo} alt="Sasyashield" className="h-5 w-auto" />
+                <div>
+                  <h3 className="font-bold text-slate-900 font-heading">Agricultural Modules</h3>
+                  <p className="text-xs text-slate-500 font-bold">Sasyashield</p>
+                </div>
               </div>
               <button
                 onClick={() => onToggleDrawer(false)}

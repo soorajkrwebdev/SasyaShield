@@ -49,3 +49,119 @@ export function isValidStateDistrict(s: string, d: string): boolean {
   if (!s || !d) return false;
   return getDistrictsForState(s).includes(d);
 }
+
+// District -> Taluk mapping (real taluk names from Census/state administrative lists).
+// Used to populate the Taluk dropdown on the farmer Profile page.
+// Only districts for which verified taluk names are available are included.
+// Districts not present here will gracefully fall back to an empty list.
+export interface TalukEntry {
+  district: string;
+  taluks: string[];
+}
+
+export const INDIAN_TALUKS: Record<string, string[]> = {
+  // Karnataka
+  Shivamogga: [
+    'Shivamogga',
+    'Thirthahalli',
+    'Sagar',
+    'Shikaripura',
+    'Bhadravathi',
+    'Sorab',
+    'Hosanagara',
+  ],
+  'Bengaluru Urban': [
+    'Bengaluru North',
+    'Bengaluru South',
+    'Anekal',
+    'Bommanahalli',
+    'Dasarahalli',
+    'Mahadevapura',
+    'Rajarajeshwari Nagar',
+    'Yelahanka',
+  ],
+  Mysuru: ['Mysuru', 'Hunsur', 'Krishnarajanagara', 'Nanjangud', 'Piriyapatna', 'Tirumakudalu Narasipura'],
+  Belagavi: [
+    'Belagavi',
+    'Bailhongal',
+    'Chikkodi',
+    'Gokak',
+    'Hukkeri',
+    'Khanapur',
+    'Ramdurg',
+    'Raibag',
+    'Saundatti',
+  ],
+  'Dakshina Kannada': ['Mangaluru', 'Bantwal', 'Belthangady', 'Puttur', 'Sullia', 'Kadaba'],
+  Hassan: [
+    'Hassan',
+    'Alur',
+    'Arkalgud',
+    'Arasikere',
+    'Belur',
+    'Channarayapatna',
+    'Holenarasipura',
+    'Sakleshpura',
+  ],
+  Tumakuru: ['Tumakuru', 'Koratagere', 'Madhugiri', 'Pavagada', 'Sira', 'Tiptur', 'Turuvekere'],
+  Chikkamagaluru: ['Chikkamagaluru', 'Kadur', 'Mudigere', 'Narasimharajapura', 'Sringeri', 'Tarikere'],
+  Davangere: ['Davangere', 'Channagiri', 'Harihara', 'Honnal', 'Jagalur', 'Nyamati'],
+  'Dharwad': ['Dharwad', 'Hubli', 'Kundgol', 'Navalgund'],
+  Gadag: ['Gadag', 'Mundargi', 'Nargund', 'Ron', 'Shirahatti'],
+  Haveri: ['Haveri', 'Byadagi', 'Hirekerur', 'Ranebennur', 'Shiggaon'],
+  Kalaburagi: ['Kalaburagi', 'Afzalpur', 'Aland', 'Chincholi', 'Chitapur', 'Jewargi', 'Sedam'],
+  'Uttara Kannada': ['Karwar', 'Ankola', 'Bhatkal', 'Haliyal', 'Honnavar', 'Kumta', 'Siddapur', 'Yallapur'],
+  Vijayapura: ['Vijayapura', 'Babaleshwar', 'Basavana Bagevadi', 'Indi', 'Muddebihal', 'Sindagi'],
+  Bagalkote: ['Bagalkote', 'Badami', 'Bilagi', 'Hungund', 'Jamkhandi', 'Mudhol'],
+  Ballari: ['Ballari', 'Hadagalli', 'Hospet', 'Kudligi', 'Sandur', 'Siruguppa'],
+  Chitradurga: ['Chitradurga', 'Challakere', 'Hiriyur', 'Hosadurga', 'Holalkere', 'Molkalmuru'],
+  Kolar: ['Kolar', 'Bangarapet', 'Kolar Gold Fields', 'Malur', 'Mulbagal', 'Srinivaspur'],
+  'Koppal': ['Koppal', 'Gangawati', 'Kushtagi', 'Yelburga'],
+  Mandya: ['Mandya', 'K.R. Nagar', 'Maddur', 'Malavalli', 'Nagamangala', 'Pandavapura', 'Shrirangapattana'],
+  Raichur: ['Raichur', 'Devadurga', 'Lingsugur', 'Manvi', 'Sindhnur'],
+  Ramanagara: ['Ramanagara', 'Channapatna', 'Kanakapura', 'Magadi'],
+  Udupi: ['Udupi', 'Brahmavar', 'Hebri', 'Karkala', 'Kundapura', 'Byndoor'],
+
+  // Kerala
+  Thiruvananthapuram: ['Thiruvananthapuram', 'Nedumangad', 'Neyyattinkara', 'Kattakada', 'Varkala'],
+  Ernakulam: ['Ernakulam', 'Aluva', 'Kothamangalam', 'Muvattupuzha', 'Kanayannur', 'Kunnathunad', 'Paravur', 'Vypin'],
+  Kozhikode: ['Kozhikode', 'Vadakara', 'Koyilandy', 'Thamarassery', 'Balusseri'],
+  Thrissur: ['Thrissur', 'Chavakkad', 'Kodungallur', 'Talappilly', 'Mukundapuram', 'Thalapilly'],
+  Kollam: ['Kollam', 'Karunagappalli', 'Kottarakkara', 'Punalur', 'Pathanapuram'],
+  Kannur: ['Kannur', 'Thalassery', 'Iritty', 'Payyanur', 'Taliparamba'],
+  Palakkad: ['Palakkad', 'Alathur', 'Chittur', 'Mannarkkad', 'Ottapalam'],
+  Kottayam: ['Kottayam', 'Changanassery', 'Vaikom', 'Meenachil', 'Kanjirappally'],
+  Alappuzha: ['Alappuzha', 'Cherthala', 'Kuttanad', 'Mavelikkara', 'Karthikappally'],
+  Malappuram: ['Malappuram', 'Eranad', 'Nilambur', 'Perinthalmanna', 'Tirur', 'Ponnani'],
+  Kasaragod: ['Kasaragod', 'Manjeshwaram', 'Uppala', 'Kumbla'],
+  Wayanad: ['Wayanad', 'Mananthavady', 'Sulthan Bathery', 'Vythiri'],
+  Idukki: ['Idukki', 'Thodupuzha', 'Peerumade', 'Devikulam', 'Udumbanchola'],
+  Pathanamthitta: ['Pathanamthitta', 'Adoor', 'Konni', 'Ranni', 'Kozhencherry'],
+
+  // Tamil Nadu
+  Chennai: ['Chennai', 'Ambattur', 'Maduravoyal', 'Pallavaram', 'Tambaram', 'Alandur', 'Velachery'],
+  Coimbatore: ['Coimbatore', 'Pollachi', 'Valparai', 'Annur', 'Mettupalayam'],
+  Madurai: ['Madurai', 'Thirumangalam', 'Usilampatti', 'Peraiyur', 'Vadipatti'],
+  Tiruchirappalli: ['Tiruchirappalli', 'Lalgudi', 'Manapparai', 'Musiri', 'Thuraiyur'],
+  Salem: ['Salem', 'Attur', 'Edappadi', 'Omalur', 'Sankagiri', 'Mettur'],
+  Tiruppur: ['Tiruppur', 'Dharapuram', 'Udumalaipettai', 'Palladam', 'Kangeyam'],
+  Erode: ['Erode', 'Gobichettipalayam', 'Bhavani', 'Sathyamangalam', 'Perundurai'],
+  Vellore: ['Vellore', 'Gudiyatham', 'Vaniyambadi', 'Ambur', 'Tirupattur'],
+  'Kanyakumari': ['Kanyakumari', 'Thuckalay', 'Kalkulam', 'Thovalai', 'Agastheeswaram'],
+
+  // Telangana
+  Hyderabad: ['Hyderabad', 'Secunderabad', 'Charminar', 'Khairatabad', 'Musal', 'Tirumalagiri'],
+  Rangareddy: ['Rangareddy', 'Shamshabad', 'Kandukur', 'Ibrahimpatnam', 'Maheswaram'],
+  Warangal: ['Warangal', 'Hanamkonda', 'Narsampet', 'Mahabubabad', 'Narsapur'],
+
+  // Maharashtra
+  Pune: ['Pune', 'Haveli', 'Daund', 'Indapur', 'Baramati', 'Purandhar', 'Bhor', 'Velhe', 'Mulshi', 'Khed'],
+  Mumbai: ['Mumbai City', 'Mumbai Suburban'],
+  Nagpur: ['Nagpur', 'Katol', 'Narkhed', 'Savner', 'Hingna', 'Kalmeshwar'],
+  Nashik: ['Nashik', 'Igatpuri', 'Sinnar', 'Trimbak', 'Niphad', 'Yeola', 'Malegaon'],
+  Aurangabad: ['Aurangabad', 'Paithan', 'Vaijapur', 'Gangapur', 'Kannad', 'Sillod'],
+};
+
+export function getTaluksForDistrict(districtName: string): string[] {
+  return INDIAN_TALUKS[districtName] ?? [];
+}

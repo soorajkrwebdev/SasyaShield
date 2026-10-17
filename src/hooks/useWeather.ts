@@ -46,7 +46,7 @@ export function useWeather(latitude?: number | null, longitude?: number | null) 
       const lon = longitude;
 
       try {
-        const cacheKey = `smartfarm_weather_${lat.toFixed(3)}_${lon.toFixed(3)}`;
+        const cacheKey = `sasyashield_weather_${lat.toFixed(3)}_${lon.toFixed(3)}`;
         try {
           const cached = sessionStorage.getItem(cacheKey);
           if (cached) {

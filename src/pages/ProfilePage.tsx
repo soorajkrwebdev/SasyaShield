@@ -4,16 +4,14 @@ import { Input } from '../components/common/Input';
 import { Select } from '../components/common/Select';
 import { Button } from '../components/common/Button';
 import { FarmingType } from '../types';
-import { getDistrictsForState, getStateNames, isValidStateDistrict } from '../data/indianStates';
-import { Database, Check, Copy } from 'lucide-react';
+import { getDistrictsForState, getStateNames, getTaluksForDistrict, isValidStateDistrict } from '../data/indianStates';
+import { Check } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { profile, updateProfile, connection } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
   const stateOptions = useMemo(() => getStateNames(), []);
 
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -21,13 +19,19 @@ export const ProfilePage: React.FC = () => {
   const [state, setState] = useState(profile?.state || '');
   const [district, setDistrict] = useState(profile?.district || '');
   const districtOptions = useMemo(() => getDistrictsForState(state), [state]);
-  const [village, setVillage] = useState(profile?.village || 'Thirthahalli');
-  const [language, setLanguage] = useState(profile?.preferred_language || 'en');
+  const talukOptions = useMemo(() => getTaluksForDistrict(district).map(t => ({ value: t, label: t })), [district]);
+  const [taluk, setTaluk] = useState(profile?.village || '');
   const [farmingType, setFarmingType] = useState<FarmingType>(profile?.farming_type || 'organic');
 
   const handleStateChange = (next: string) => {
     setState(next);
     setDistrict('');
+    setTaluk('');
+  };
+
+  const handleDistrictChange = (next: string) => {
+    setDistrict(next);
+    setTaluk('');
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -47,8 +51,7 @@ export const ProfilePage: React.FC = () => {
       phone: phone.trim() || undefined,
       state,
       district,
-      village,
-      preferred_language: language,
+      village: taluk,
       farming_type: farmingType,
     });
 
@@ -59,13 +62,6 @@ export const ProfilePage: React.FC = () => {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     }
-  };
-
-  const handleCopyEnvSnippet = () => {
-    const snippet = `# .env\nVITE_SUPABASE_URL=https://your-project-id.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-public-key-here\n# optional alias:\n# VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key-here`;
-    navigator.clipboard.writeText(snippet);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -133,7 +129,7 @@ export const ProfilePage: React.FC = () => {
             <Select
               label="District"
               value={district}
-              onChange={e => setDistrict(e.target.value)}
+              onChange={e => handleDistrictChange(e.target.value)}
               disabled={!state}
               helperText={!state ? 'Select a state first' : undefined}
               options={[
@@ -141,10 +137,15 @@ export const ProfilePage: React.FC = () => {
                 ...districtOptions.map(d => ({ value: d, label: d })),
               ]}
             />
-            <Input
+            <Select
               label="Taluk / Village"
-              value={village}
-              onChange={e => setVillage(e.target.value)}
+              value={taluk}
+              onChange={e => setTaluk(e.target.value)}
+              helperText={!district ? 'Select a district first' : talukOptions.length === 0 ? 'No taluks available for this district' : undefined}
+              options={[
+                { value: '', label: 'Select Taluk' },
+                ...talukOptions,
+              ]}
             />
           </div>
 
@@ -160,19 +161,7 @@ export const ProfilePage: React.FC = () => {
                 { value: 'conventional', label: 'Conventional / Integrated' },
               ]}
             />
-            <Select
-              label="Preferred Language"
-              value={language}
-              onChange={e => setLanguage(e.target.value)}
-              options={[
-                { value: 'en', label: 'English' },
-                { value: 'kn', label: 'Kannada (ಕನ್ನಡ)' },
-                { value: 'hi', label: 'Hindi (हिन्दी)' },
-                { value: 'ml', label: 'Malayalam (മലയാളം)' },
-                { value: 'ta', label: 'Tamil (தமிழ்)' },
-                { value: 'te', label: 'Telugu (తెలుగు)' },
-              ]}
-            />
+
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
@@ -184,52 +173,7 @@ export const ProfilePage: React.FC = () => {
         )}
       </div>
 
-      {/* Supabase PostgreSQL Backend Status & Config Card */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-            <Database className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold font-heading">Backend & Database Architecture</h3>
-            <p className="text-xs text-slate-400">PostgreSQL with Row Level Security (RLS)</p>
-          </div>
-        </div>
 
-        <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/60 mb-5 text-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Current Mode:</span>
-            <span className={`font-bold ${connection.status === 'connected' ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {connection.label}
-            </span>
-          </div>
-          <div className="flex items-start justify-between gap-3">
-            <span className="text-slate-400 shrink-0">Detail:</span>
-            <span className="font-mono text-slate-300 text-right">{connection.detail}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Schema File:</span>
-            <span className="font-mono text-slate-300">supabase/migrations/20260923000000_phase1_core_schema.sql</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Security Isolation:</span>
-            <span className="text-emerald-300">RLS Active (auth.uid() = user_id)</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800">
-          <p className="text-xs text-slate-400">
-            To connect your live Supabase project, paste your URL and Anon Key in <code className="text-emerald-400 font-mono">.env</code>.
-          </p>
-          <button
-            onClick={handleCopyEnvSnippet}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 cursor-pointer shrink-0 transition-colors"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Copied .env template!' : 'Copy .env format'}</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

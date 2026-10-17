@@ -1,4 +1,5 @@
 import React from 'react';
+import sasyashieldLogo from '../../assets/sasyashield-logo.png';
 import {
   LayoutDashboard,
   Trees,
@@ -161,33 +162,18 @@ function itemActiveColor(id: NavigationTab) {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => {
-  const { profile, signOut, connection } = useAuth();
+  const { profile, signOut } = useAuth();
 
   return (
     <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200/80 min-h-screen shrink-0 select-none">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-slate-100 gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-sm shadow-emerald-700/20">
-          <Leaf className="w-5 h-5 fill-white/20" />
-        </div>
+        <img src={sasyashieldLogo} alt="Sasyashield" className="h-9 w-auto rounded-xl" />
         <div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-900 tracking-tight text-base font-heading">SmartFarm</span>
-            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 uppercase tracking-wider">2.0</span>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-900 tracking-tight text-base font-heading">Sasyashield</span>
           </div>
           <p className="text-[10px] text-slate-400 font-medium">Crop Protection Intelligence</p>
-        </div>
-      </div>
-
-      {/* Database State Badge */}
-      <div className="px-4 py-2 bg-slate-50/80 border-b border-slate-100">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-slate-500 font-medium">Database State:</span>
-          {connection.status === 'connected' ? (
-            <Badge variant="emerald" size="sm">{connection.label}</Badge>
-          ) : (
-            <Badge variant="amber" size="sm">{connection.label}</Badge>
-          )}
         </div>
       </div>
 

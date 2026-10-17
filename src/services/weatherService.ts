@@ -45,7 +45,7 @@ export async function fetchFarmWeather(
     };
   }
 
-  const cacheKey = `smartfarm_weather_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
+  const cacheKey = `sasyashield_weather_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
 
   // 15-minute cache
   try {

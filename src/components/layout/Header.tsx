@@ -3,14 +3,12 @@ import {
   Trees,
   Plus,
   ChevronDown,
-  Database,
   Menu,
   Sprout,
   ClipboardList,
   Package
 } from 'lucide-react';
 import { useFarmData } from '../../contexts/FarmContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../common/Button';
 import { NavigationTab } from './Sidebar';
 
@@ -32,7 +30,6 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMobileDrawer,
 }) => {
   const { farms, selectedFarmId, setSelectedFarmId, selectedFarm } = useFarmData();
-  const { connection } = useAuth();
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [farmMenuOpen, setFarmMenuOpen] = useState(false);
 
@@ -112,21 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Sandbox Mode Notice / Quick Actions / Settings */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Database state indicator */}
-        {connection.status === 'connected' ? (
-          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200" title={connection.detail}>
-            <Database className="w-3.5 h-3.5" />
-            <span>{connection.label}</span>
-          </span>
-        ) : (
-          <span
-            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 cursor-help"
-            title={connection.detail}
-          >
-            <Database className="w-3.5 h-3.5 text-amber-600" />
-            <span>{connection.label}</span>
-          </span>
-        )}
+
 
         {/* Quick Action Button */}
         <div className="relative">

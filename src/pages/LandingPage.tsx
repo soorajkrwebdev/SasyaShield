@@ -10,6 +10,7 @@ import {
   CheckCircle,
   Sparkles,
 } from 'lucide-react';
+import sasyashieldLogo from '../assets/sasyashield-logo.png';
 import { Button } from '../components/common/Button';
 
 interface LandingPageProps {
@@ -30,15 +31,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 dark:bg-slate-900/90 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-sm shadow-emerald-700/20">
-              <Leaf className="w-5 h-5 fill-white/20" />
-            </div>
+            <img src={sasyashieldLogo} alt="Sasyashield" className="h-10 w-auto rounded-xl" />
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-slate-900 tracking-tight text-lg font-heading">SmartFarm</span>
-                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 uppercase tracking-wider">2.0</span>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-slate-900 tracking-tight text-lg font-heading">Sasyashield</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium">Sustainable Agriculture Intelligence</p>
+              <p className="text-[10px] text-slate-400 font-medium">Crop Protection Intelligence</p>
             </div>
           </div>
 
@@ -76,11 +74,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-200/60 text-emerald-800 text-xs font-bold mb-6 animate-in fade-in">
             <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-            <span>Digital Farm Management & Sustainable Agriculture Intelligence Platform</span>
+            <span>Sasyashield • Crop Protection Intelligence Platform</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight font-heading max-w-4xl mx-auto leading-[1.15]">
-            Smart Digital Management for{' '}
+            Sasyashield for{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-700 to-teal-600">
               Sustainable Farming
             </span>
@@ -105,7 +103,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onGoToAuth('login')}
               className="w-full sm:w-auto border-emerald-600/30 text-emerald-800 hover:bg-emerald-50"
             >
-              Sign In to SmartFarm
+              Sign In to Sasyashield
             </Button>
             {onBrowseJobs && (
               <Button
@@ -371,9 +369,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <footer className="mt-auto py-8 bg-slate-900 text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Leaf className="w-4 h-4 text-emerald-500" />
-            <span className="text-white font-bold">SmartFarm 2.0</span>
-            <span>— Sustainable Agriculture Intelligence</span>
+            <img src={sasyashieldLogo} alt="Sasyashield" className="w-4 h-4" />
+            <span className="text-white font-bold">Sasyashield</span>
+            <span>— Crop Protection Intelligence</span>
           </div>
           <p className="text-slate-500 text-center sm:text-right">
             Authoritative knowledge • Multi-farm lifecycle tracking • Non-commercial

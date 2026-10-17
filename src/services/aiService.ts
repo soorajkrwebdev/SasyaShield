@@ -450,7 +450,7 @@ function executeGroundedReasoning(
           title: 'IPM Decision Records',
           response_type: 'Farm Record',
           source_level: 2,
-          content: 'No formal Integrated Pest Management (IPM) actions have been logged for this farm yet.\n\nSmartFarm 2.0 uses a tiered IPM decision hierarchy prioritizing cultural, physical, and biological controls over chemical interventions.',
+          content: 'No formal Integrated Pest Management (IPM) actions have been logged for this farm yet.\n\nSasyashield uses a tiered IPM decision hierarchy prioritizing cultural, physical, and biological controls over chemical interventions.',
           sections: [
             {
               heading: 'Standard IPM Hierarchy',
@@ -625,7 +625,7 @@ function executeGroundedReasoning(
           title: 'Pesticide Advisory Notice',
           response_type: 'Uncertain / Insufficient Evidence',
           source_level: 1,
-          content: "I don't have verified application information for that crop/pest combination in the current knowledge base.\n\nIn adherence with SmartFarm 2.0 safety guidelines, chemical doses, dilutions, pre-harvest intervals (PHI), and re-entry intervals (REI) are **never fabricated, calculated, or extrapolated**. Please consult the official registered label or your nearest Krishi Vigyan Kendra (KVK) / Agricultural Extension Officer.",
+          content: "I don't have verified application information for that crop/pest combination in the current knowledge base.\n\nIn adherence with Sasyashield safety guidelines, chemical doses, dilutions, pre-harvest intervals (PHI), and re-entry intervals (REI) are **never fabricated, calculated, or extrapolated**. Please consult the official registered label or your nearest Krishi Vigyan Kendra (KVK) / Agricultural Extension Officer.",
           sections: [
             {
               heading: 'Pesticide Safety Instructions',
@@ -1136,7 +1136,7 @@ function executeGroundedReasoning(
   return {
     message: {
       role: 'assistant',
-      title: 'SmartFarm 2.0 Farm Intelligence Layer',
+      title: 'Sasyashield Farm Intelligence Layer',
       response_type: 'General Explanation',
       source_level: 1,
       content: `I am connected to your live farm database (${ctx.farms.length} farm(s), ${ctx.crops.length} crop(s), ${ctx.pestObservations.length} pest observation(s), ${ctx.soilTests.length} soil test(s)).\n\nAll responses adhere to the **4-Level Source Hierarchy**:\n1. **Level 1:** Verified agricultural science (ICAR, CPCRI, IISR, CIBRC, APEDA)\n2. **Level 2:** Your authenticated farm ledger\n3. **Level 3:** Live external telemetry (Weather, AGMARKNET)\n4. **Level 4:** AI explanation (never overriding verified sources)`,

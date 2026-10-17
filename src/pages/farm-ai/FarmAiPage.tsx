@@ -91,7 +91,7 @@ export const FarmAiPage: React.FC = () => {
         {
           organization: 'ICAR / APEDA / CIBRC',
           document: 'Authoritative Agricultural Standards',
-          reference: 'SmartFarm Grounded Intelligence',
+          reference: 'Sasyashield Grounded Intelligence',
           url: 'https://icar.org.in',
         },
       ],
@@ -171,7 +171,7 @@ export const FarmAiPage: React.FC = () => {
         ],
         sources: [
           {
-            organization: 'SmartFarm 2.0',
+            organization: 'Sasyashield',
             document: 'Farm-Aware AI System',
             reference: 'Interactive Session',
           },

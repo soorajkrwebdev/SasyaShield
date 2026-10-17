@@ -19,14 +19,14 @@ const CERTIFICATION_STEPS = [
     title: 'Farm Conversion Period',
     description:
       'Most organic standards require a conversion period (typically 2–3 years under NPOP) during which synthetic inputs must not be used. The CB will determine the applicable conversion start date based on your records.',
-    note: 'Selecting "organic" or "in conversion" in your SmartFarm profile does not establish a conversion date with any certification body.',
+    note: 'Selecting "organic" or "in conversion" in your Sasyashield profile does not establish a conversion date with any certification body.',
   },
   {
     step: 3,
     title: 'Maintain Detailed Records',
     description:
       'Certification requires evidence-based farm records: field maps, input purchase receipts, application records, harvest records, and sales invoices. Inspectors review these during the annual audit.',
-    note: 'SmartFarm 2.0 farm records are farmer-managed tools. They are not automatically submitted to or verified by any certification body.',
+    note: 'Sasyashield farm records are farmer-managed tools. They are not automatically submitted to or verified by any certification body.',
   },
   {
     step: 4,
@@ -58,9 +58,9 @@ const MYTHS = [
       'Using inputs described as organic does not create certification. Certification requires application to an accredited body, a formal conversion period, records review, and physical inspection.',
   },
   {
-    myth: '"My SmartFarm profile says \'organic\' — that means I am certified."',
+    myth: '"My Sasyashield profile says \'organic\' — that means I am certified."',
     reality:
-      'Your farming type selection in SmartFarm reflects your management approach as self-reported. It has no connection to APEDA accreditation or any third-party certification body.',
+      'Your farming type selection in Sasyashield reflects your management approach as self-reported. It has no connection to APEDA accreditation or any third-party certification body.',
   },
   {
     myth: '"If an input is listed in NPOP Annex 2, any product of that type is automatically permitted."',
@@ -88,7 +88,7 @@ export const OrganicCertificationSection: React.FC = () => {
             Platform Scope Notice
           </strong>
           <p className="text-amber-800">
-            SmartFarm 2.0 is a farm management and agricultural knowledge platform. It{' '}
+            Sasyashield is a farm management and agricultural knowledge platform. It{' '}
             <span className="font-bold underline">does not</span> issue, replace, or validate official organic
             certification. Organic certification in India is governed by authorised certification bodies
             under the{' '}
