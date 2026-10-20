@@ -41,56 +41,58 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
   const navItems: { id: NavigationTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { id: 'farms', label: 'Farms', icon: <Trees className="w-5 h-5" /> },
+    { id: 'pest-ipm', label: 'Pest & IPM', icon: <Bug className="w-5 h-5" /> },
     { id: 'crops', label: 'Crops', icon: <Sprout className="w-5 h-5" /> },
     { id: 'organic', label: 'Organic', icon: <Leaf className="w-5 h-5" /> },
   ];
 
-  const drawerItems: { id: NavigationTab; label: string; icon: React.ReactNode; phaseNotice?: string; beta?: boolean }[] = [
+  const drawerItems: { id: NavigationTab; label: string; icon: React.ReactNode; beta?: boolean }[] = [
+    { id: 'farms', label: 'My Farms', icon: <Trees className="w-4 h-4 text-emerald-600" /> },
     { id: 'activities', label: 'Farm Activities', icon: <ClipboardList className="w-4 h-4 text-emerald-600" /> },
     { id: 'inputs', label: 'Inputs Management', icon: <Package className="w-4 h-4 text-emerald-600" /> },
     { id: 'organic', label: 'Flagship: Organic Hub', icon: <Leaf className="w-4 h-4 text-emerald-600" /> },
     { id: 'weather', label: 'Weather Intelligence', icon: <CloudSun className="w-4 h-4 text-emerald-600" /> },
-    { id: 'pest-ipm', label: 'Pest & IPM Advisory', icon: <Bug className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 3' },
-    { id: 'tests', label: 'Soil & Water Tests', icon: <TestTube className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 4' },
-    { id: 'waste', label: 'Waste Management', icon: <Recycle className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 4' },
-    { id: 'farm-work', label: 'Farm Work Board', icon: <Briefcase className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 6' },
-    { id: 'market', label: 'Market Prices', icon: <TrendingUp className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 5', beta: true },
-    { id: 'analytics', label: 'Farm Analytics', icon: <BarChart3 className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 7' },
-    { id: 'farm-ai', label: 'Farm AI Assistant', icon: <Bot className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 8' },
-    { id: 'knowledge', label: 'Knowledge Hub', icon: <BookOpen className="w-4 h-4 text-slate-500" />, phaseNotice: 'Phase 2' },
+    { id: 'pest-ipm', label: 'Pest & IPM Advisory', icon: <Bug className="w-4 h-4 text-slate-500" /> },
+    { id: 'tests', label: 'Soil & Water Tests', icon: <TestTube className="w-4 h-4 text-slate-500" /> },
+    { id: 'waste', label: 'Waste Management', icon: <Recycle className="w-4 h-4 text-slate-500" /> },
+    { id: 'farm-work', label: 'Farm Work Board', icon: <Briefcase className="w-4 h-4 text-slate-500" /> },
+    { id: 'market', label: 'Market Prices', icon: <TrendingUp className="w-4 h-4 text-slate-500" />, beta: true },
+    { id: 'analytics', label: 'Farm Analytics', icon: <BarChart3 className="w-4 h-4 text-slate-500" /> },
+    { id: 'farm-ai', label: 'Farm AI Assistant', icon: <Bot className="w-4 h-4 text-slate-500" /> },
+    { id: 'knowledge', label: 'Knowledge Hub', icon: <BookOpen className="w-4 h-4 text-slate-500" /> },
     { id: 'profile', label: 'Farmer Profile & Settings', icon: <UserCheck className="w-4 h-4 text-emerald-600" /> },
   ];
 
   return (
     <>
       {/* Fixed Bottom Navigation Bar for Mobile */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 px-2 py-1 shadow-lg flex items-center justify-around">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 px-1 py-1 shadow-lg flex items-stretch justify-between gap-0.5 overflow-x-hidden">
         {navItems.map(item => {
           const active = currentTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
+              aria-current={active ? 'page' : undefined}
+              className={`flex-1 min-w-0 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
                 active ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <div className={`p-1 rounded-lg ${active ? 'bg-emerald-50 text-emerald-700' : ''}`}>
                 {item.icon}
               </div>
-              <span className="text-[10px] mt-0.5">{item.label}</span>
+              <span className="text-[9px] leading-tight mt-0.5 truncate max-w-full">{item.label}</span>
             </button>
           );
         })}
         <button
           onClick={() => onToggleDrawer(true)}
-          className="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 hover:text-slate-800 cursor-pointer"
+          className="flex-1 min-w-0 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 hover:text-slate-800 cursor-pointer"
         >
           <div className="p-1">
             <Menu className="w-5 h-5" />
           </div>
-          <span className="text-[10px] mt-0.5">More</span>
+          <span className="text-[9px] leading-tight mt-0.5 truncate max-w-full">More</span>
         </button>
       </nav>
 
@@ -123,7 +125,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             <div className="flex-1 overflow-y-auto p-3 space-y-1">
               {drawerItems.map(item => (
                 <button
-                  key={item.id}
+                  key={`${item.id}-${item.label}`}
                   onClick={() => {
                     onTabChange(item.id);
                     onToggleDrawer(false);
@@ -143,11 +145,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                       </span>
                     )}
                   </div>
-                  {item.phaseNotice && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded ${currentTab === item.id ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-500'}`}>
-                      {item.phaseNotice}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>

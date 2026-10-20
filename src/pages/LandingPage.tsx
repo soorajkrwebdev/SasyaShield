@@ -29,18 +29,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans dark:bg-slate-950 dark:text-slate-100">
       {/* Top Navigation */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 dark:bg-slate-900/90 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={sasyashieldLogo} alt="Sasyashield" className="h-10 w-auto rounded-xl" />
-            <div>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <img src={sasyashieldLogo} alt="Sasyashield" className="h-8 sm:h-10 w-auto rounded-xl shrink-0" />
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-slate-900 tracking-tight text-lg font-heading">Sasyashield</span>
+                <span className="font-extrabold text-slate-900 tracking-tight text-base sm:text-lg font-heading truncate block">Sasyashield</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium">Crop Protection Intelligence</p>
+              <p className="text-[10px] text-slate-400 font-medium hidden min-[380px]:block truncate">Crop Protection Intelligence</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {onBrowseJobs && (
               <button
                 type="button"
@@ -53,7 +53,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
             <button
               onClick={() => onGoToAuth('login')}
-              className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
+              className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 px-2 sm:px-3 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
             >
               Farmer Login
             </button>
@@ -61,9 +61,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               variant="primary"
               size="sm"
               onClick={() => onGoToAuth('register')}
-              icon={<ArrowRight className="w-4 h-4" />}
+              icon={<ArrowRight className="w-4 h-4 shrink-0" />}
+              className="whitespace-nowrap"
             >
-              Create Farmer Account
+              <span className="hidden min-[420px]:inline">Create Farmer Account</span>
+              <span className="min-[420px]:hidden">Join Now</span>
             </Button>
           </div>
         </div>

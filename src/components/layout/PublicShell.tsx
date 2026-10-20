@@ -29,11 +29,11 @@ export const PublicShell: React.FC<PublicShellProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 dark:bg-slate-900/90 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <Link to={PUBLIC_PATHS.landing} className="flex items-center gap-2.5 shrink-0">
-            <img src={sasyashieldLogo} alt="Sasyashield" className="h-9 w-auto rounded-xl" />
-            <span className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 tracking-tight text-base font-heading">Sasyashield</span>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
+          <Link to={PUBLIC_PATHS.landing} className="flex items-center gap-2 sm:gap-2.5 shrink-0 min-w-0">
+            <img src={sasyashieldLogo} alt="Sasyashield" className="h-8 sm:h-9 w-auto rounded-xl shrink-0" />
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="font-bold text-slate-900 tracking-tight text-sm sm:text-base font-heading truncate">Sasyashield</span>
             </span>
           </Link>
 
@@ -53,30 +53,32 @@ export const PublicShell: React.FC<PublicShellProps> = ({ children }) => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {user ? (
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors whitespace-nowrap"
               >
-                <LayoutDashboard className="w-3.5 h-3.5" aria-hidden="true" />
-                Farmer Dashboard
+                <LayoutDashboard className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span className="hidden min-[380px]:inline">Farmer Dashboard</span>
+                <span className="min-[380px]:hidden">Dashboard</span>
               </Link>
             ) : (
               <>
                 <Link
                   to={AUTH_PATHS.login}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors whitespace-nowrap"
                 >
-                  <LogIn className="w-3.5 h-3.5" aria-hidden="true" />
+                  <LogIn className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                   Login
                 </Link>
                 <Link
                   to={AUTH_PATHS.register}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors whitespace-nowrap"
                 >
-                  <UserPlus className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span className="hidden xs:inline">Register</span>
+                  <UserPlus className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span className="hidden min-[420px]:inline">Register</span>
+                  <span className="min-[420px]:hidden">Join</span>
                 </Link>
               </>
             )}
