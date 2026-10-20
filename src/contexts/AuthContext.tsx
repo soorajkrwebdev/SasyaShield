@@ -224,6 +224,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (error) return { error: error.message };
 
+    // With email confirmations enabled, signUp creates the user but does not
+    // establish a session. Supabase sends a confirmation email containing a
+    // link. The user must click that link before they can sign in.
     if (authData.user && authData.session) {
       await fetchProfile(authData.user.id, data.email);
     }

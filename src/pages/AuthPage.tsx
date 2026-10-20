@@ -18,8 +18,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 }) => {
   const { signIn, signUp } = useAuth();
   const [isRegister, setIsRegister] = useState(initialMode === 'register');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>(
+    initialMode === 'register' ? 'register' : 'login'
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Form states
   const [email, setEmail] = useState('');
@@ -41,6 +45,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     if (isRegister) {
@@ -82,6 +87,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
       if (res.error) {
         setError(res.error);
+      } else {
+        // Registration successful. Supabase has sent a confirmation email with
+        // a link. Clicking the link authenticates the farmer and takes them
+        // into the application automatically.
+        setSuccess('Registration successful! We\'ve sent a confirmation link to your email. Please check your inbox and click the link to activate your account.');
+        setAuthMode('login');
+        setIsRegister(false);
+        // Clear the form so the user can sign in
+        setEmail('');
+        setPassword('');
       }
     } else {
       if (!email.trim() || !password) {
@@ -118,6 +133,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           {isRegister ? 'Farmer Registration' : 'Farmer Sign In'}
         </h2>
         <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
+          
           Sasyashield — Crop Protection Intelligence
         </p>
       </div>
@@ -126,31 +142,37 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         <div className="bg-white py-8 px-5 sm:px-8 shadow-xl shadow-slate-200/50 rounded-3xl border border-slate-100">
           {/* Tabs: Sign In / Register */}
           <div className="flex rounded-xl bg-slate-100 p-1 mb-6">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegister(false);
-                setError(null);
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                !isRegister ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              Farmer Login
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegister(true);
-                setError(null);
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                isRegister ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              Create Account
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegister(false);
+                  setError(null);
+                  setAuthMode('login');
+                }}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  !isRegister && authMode === 'login'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Farmer Login
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegister(true);
+                  setError(null);
+                  setAuthMode('register');
+                }}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  isRegister && authMode === 'register'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
 
           {error && (
             <div className="p-3 mb-5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700">
@@ -158,119 +180,123 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <>
-                <Input
-                  label="Full Name"
-                  required
-                  placeholder="e.g. Ramesh Patel"
-                  leftIcon={<User className="w-4 h-4" />}
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                />
-                <Input
-                  label="Mobile Number (Optional)"
-                  placeholder="+91 98450 12345"
-                  leftIcon={<Phone className="w-4 h-4" />}
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                />
-              </>
-            )}
-
-            <Input
-              label="Email Address"
-              type="email"
-              required
-              placeholder="farmer@example.com"
-              leftIcon={<Mail className="w-4 h-4" />}
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              required
-              placeholder="••••••••"
-              leftIcon={<Lock className="w-4 h-4" />}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-
-            {isRegister && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Select
-                    label="State / Union Territory"
-                    required
-                    value={state}
-                    onChange={e => handleStateChange(e.target.value)}
-                    options={[
-                      { value: '', label: 'Select state/UT' },
-                      ...stateOptions.map(s => ({ value: s, label: s })),
-                    ]}
-                  />
-                  <Select
-                    label="District"
-                    required
-                    value={district}
-                    onChange={e => setDistrict(e.target.value)}
-                    disabled={!state}
-                    helperText={!state ? 'Select a state first' : undefined}
-                    options={[
-                      { value: '', label: 'Select district' },
-                      ...districtOptions.map(d => ({ value: d, label: d })),
-                    ]}
-                  />
-                </div>
-
-                <Select
-                  label="Primary Farming Philosophy"
-                  value={farmingType}
-                  onChange={e => setFarmingType(e.target.value as FarmingType)}
-                  options={[
-                    { value: 'organic', label: '100% Organic Farming' },
-                    { value: 'transitioning', label: 'Transitioning to Organic' },
-                    { value: 'mixed', label: 'Mixed Farming System' },
-                    { value: 'conventional', label: 'Conventional / Integrated' },
-                  ]}
-                />
-              </>
-            )}
-
-            <div className="pt-2">
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                loading={loading}
-                className="w-full shadow-sm shadow-emerald-600/30"
-              >
-                {isRegister ? 'Register Farmer Account' : 'Sign In to Farm Platform'}
-              </Button>
+          {success && (
+            <div className="p-3 mb-5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700">
+              {success}
             </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+                {isRegister && (
+                  <>
+                    <Input
+                      label="Full Name"
+                      required
+                      placeholder="e.g. Ramesh Patel"
+                      leftIcon={<User className="w-4 h-4" />}
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                    />
+                    <Input
+                      label="Mobile Number (Optional)"
+                      placeholder="+91 98450 12345"
+                      leftIcon={<Phone className="w-4 h-4" />}
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                    />
+                  </>
+                )}
+
+                <Input
+                  label="Email Address"
+                  type="email"
+                  required
+                  placeholder="farmer@example.com"
+                  leftIcon={<Mail className="w-4 h-4" />}
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
+
+                <Input
+                  label="Password"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  leftIcon={<Lock className="w-4 h-4" />}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+
+                {isRegister && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Select
+                        label="State / Union Territory"
+                        required
+                        value={state}
+                        onChange={e => handleStateChange(e.target.value)}
+                        options={[
+                          { value: '', label: 'Select state/UT' },
+                          ...stateOptions.map(s => ({ value: s, label: s })),
+                        ]}
+                      />
+                      <Select
+                        label="District"
+                        required
+                        value={district}
+                        onChange={e => setDistrict(e.target.value)}
+                        disabled={!state}
+                        helperText={!state ? 'Select a state first' : undefined}
+                        options={[
+                          { value: '', label: 'Select district' },
+                          ...districtOptions.map(d => ({ value: d, label: d })),
+                        ]}
+                      />
+                    </div>
+
+                    <Select
+                      label="Primary Farming Philosophy"
+                      value={farmingType}
+                      onChange={e => setFarmingType(e.target.value as FarmingType)}
+                      options={[
+                        { value: 'organic', label: '100% Organic Farming' },
+                        { value: 'transitioning', label: 'Transitioning to Organic' },
+                        { value: 'mixed', label: 'Mixed Farming System' },
+                        { value: 'conventional', label: 'Conventional / Integrated' },
+                      ]}
+                    />
+                  </>
+                )}
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    loading={loading}
+                    className="w-full shadow-sm shadow-emerald-600/30"
+                  >
+                    {isRegister ? 'Register Farmer Account' : 'Sign In to Farm Platform'}
+                  </Button>
+                </div>
           </form>
 
           {/* Password reset hint */}
-          {!isRegister && (
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-400">
-                Forgot your password?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    // handled by the AuthPage reset flow below if email is entered
-                    setError('Enter your email above and use "Forgot Password" — this feature coming soon.');
-                  }}
-                  className="text-emerald-700 font-semibold hover:underline cursor-pointer"
-                >
-                  Reset Password
-                </button>
-              </p>
-            </div>
-          )}
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <p className="text-xs text-slate-400">
+              Forgot your password?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  // handled by the AuthPage reset flow below if email is entered
+                  setError('Enter your email above and use "Forgot Password" — this feature coming soon.');
+                }}
+                className="text-emerald-700 font-semibold hover:underline cursor-pointer"
+              >
+                Reset Password
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>
