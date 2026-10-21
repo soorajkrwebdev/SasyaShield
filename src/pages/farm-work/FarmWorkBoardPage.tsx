@@ -29,6 +29,7 @@ import {
 } from '../../services/farmJobService';
 import { CreateJobModal } from '../../components/farm-work/CreateJobModal';
 import { JobInquiryModal } from '../../components/farm-work/JobInquiryModal';
+import { JobDetailsModal } from '../../components/farm-work/JobDetailsModal';
 import { ViewInquiriesModal } from '../../components/farm-work/ViewInquiriesModal';
 
 export interface FarmWorkBoardPageProps {
@@ -51,6 +52,7 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedJobForInquiry, setSelectedJobForInquiry] = useState<PublicFarmJob | null>(null);
+  const [selectedJobForDetails, setSelectedJobForDetails] = useState<PublicFarmJob | null>(null);
   const [selectedJobForInquiries, setSelectedJobForInquiries] = useState<FarmJob | null>(null);
   const [showAllInquiriesModal, setShowAllInquiriesModal] = useState(false);
 
@@ -332,7 +334,10 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
               {filteredJobs.map(job => (
                 <div
                   key={job.id}
-                  className="bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow"
+                  className="bg-white rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedJobForDetails(job)}
+                  role="button"
+                  onKeyDown={e => e.key === 'Enter' && setSelectedJobForDetails(job)}
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div>
@@ -358,7 +363,8 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                     <button
                       className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600"
                       title="Share job"
-                      onClick={() => {
+                      onClick={e => {
+                        e.stopPropagation();
                         if (navigator.clipboard) {
                           navigator.clipboard.writeText(window.location.href);
                           alert('Job link copied to clipboard!');
@@ -368,10 +374,6 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                       <Share2 className="w-4 h-4" />
                     </button>
                   </div>
-
-                  <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl mb-3 leading-relaxed">
-                    {job.description}
-                  </p>
 
                   <div className="flex items-center justify-between flex-wrap gap-3 pt-2 text-xs text-slate-500 border-t border-slate-100">
                     <div className="flex items-center gap-4 flex-wrap">
@@ -406,7 +408,10 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                             size="sm"
                             variant="outline"
                             className="text-xs"
-                            onClick={() => setSelectedJobForInquiries(myJobs.find(ownedJob => ownedJob.id === job.id) || null)}
+                            onClick={e => {
+                              e.stopPropagation();
+                              setSelectedJobForInquiries(myJobs.find(ownedJob => ownedJob.id === job.id) || null);
+                            }}
                           >
                             <Eye className="w-3.5 h-3.5 mr-1" />
                             Inquiries ({('inquiry_count' in job ? job.inquiry_count : undefined) || 0})
@@ -416,7 +421,10 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                               size="sm"
                               variant="ghost"
                               className="text-rose-600 hover:bg-rose-50 text-xs"
-                              onClick={() => handleCloseJob(job.id)}
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleCloseJob(job.id);
+                              }}
                             >
                               Close
                             </Button>
@@ -425,7 +433,10 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                             size="sm"
                             variant="ghost"
                             className="text-slate-400 hover:text-rose-600 text-xs"
-                            onClick={() => handleDeleteJob(job.id)}
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleDeleteJob(job.id);
+                            }}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -433,11 +444,14 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                       ) : (
                         <Button
                           size="sm"
-                          onClick={() => setSelectedJobForInquiry(job)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedJobForDetails(job);
+                          }}
                           className="text-xs bg-emerald-600 hover:bg-emerald-700"
                         >
                           <MessageSquare className="w-3.5 h-3.5 mr-1" />
-                          Apply / Inquire
+                          View Details
                         </Button>
                       )}
                     </div>
@@ -478,6 +492,18 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onJobCreated={fetchJobs}
+        />
+      )}
+
+      {selectedJobForDetails && (
+        <JobDetailsModal
+          job={selectedJobForDetails}
+          isOpen={!!selectedJobForDetails}
+          onClose={() => setSelectedJobForDetails(null)}
+          onApply={job => {
+            setSelectedJobForDetails(null);
+            setSelectedJobForInquiry(job);
+          }}
         />
       )}
 

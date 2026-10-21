@@ -191,14 +191,47 @@ export async function submitJobInquiry(
       available_date: input.available_date || null,
       workers_count: input.workers_count || 1,
       message: input.message.trim(),
-      status: 'pending',
+      // status is omitted intentionally: the column defaults to 'pending' and the
+      // column-scoped INSERT grant for public applicants does not cover status.
     });
 
-    if (error) return { success: false, error: error.message };
+    if (error) return { success: false, error: formatInquiryError(error) };
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Failed to submit inquiry.' };
+    return { success: false, error: formatInquiryError(err) };
   }
+}
+
+/**
+ * Converts a database error into a user-safe message. Raw Postgres errors can
+ * leak SQL internals (table names, privileges, constraint details) which must
+ * never be shown to public applicants. Trigger validation errors (check_violation)
+ * are already user-friendly and are passed through; everything else is genericised.
+ * The raw error is always logged to the console for development troubleshooting.
+ */
+function formatInquiryError(error: any): string {
+  console.error('[FarmJobService] inquiry submission error:', error);
+
+  const code = error?.code;
+  const message = error?.message || '';
+
+  // User-friendly validation raised by the database trigger (e.g. job not open,
+  // invalid phone, duplicate recent submission).
+  if (code === '23514') {
+    return message || 'Failed to submit inquiry.';
+  }
+
+  // Permission / relation / column errors must not be exposed to public users.
+  if (
+    code === '42501' || // insufficient_privilege
+    code === '42P01' || // undefined_table
+    code === '42703' || // undefined_column
+    /permission denied/i.test(message)
+  ) {
+    return 'Unable to submit your inquiry right now. Please try again later.';
+  }
+
+  return message || 'Failed to submit inquiry.';
 }
 
 /**
