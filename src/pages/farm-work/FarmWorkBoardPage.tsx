@@ -414,7 +414,7 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
                             }}
                           >
                             <Eye className="w-3.5 h-3.5 mr-1" />
-                            Inquiries ({('inquiry_count' in job ? job.inquiry_count : undefined) || 0})
+                            Inquiries ({myJobs.find(ownedJob => ownedJob.id === job.id)?.inquiry_count || 0})
                           </Button>
                           {job.status === 'open' && (
                             <Button

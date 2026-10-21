@@ -35,6 +35,18 @@ const ok = (name, cond) => {
   ok('error + retry path present', page.includes('Could not load farm jobs') && page.includes('onRetry={fetchJobs}'));
 }
 
+// 2b. Inquiry count calculation
+{
+  const page = src('pages/farm-work/FarmWorkBoardPage.tsx');
+  const svc = src('services/farmJobService.ts');
+  ok('count looks up inquiry_count from myJobs (not from job directly)', page.includes('myJobs.find(ownedJob => ownedJob.id === job.id)?.inquiry_count'));
+  ok('count does not read job.inquiry_count directly', !page.includes("job.inquiry_count"));
+  ok('JobInquiryModal receives onSuccess callback', page.includes('onSuccess={() => fetchJobs()}'));
+  ok('getFarmerJobs does not use nested job_inquiries select', !svc.includes("job_inquiries(id)"));
+  ok('getFarmerJobs fetches inquiries separately', svc.includes('.in(\'job_id\', jobIds)'));
+  ok('getFarmerJobs calculates inquiry counts per job', svc.includes('inquiryCounts[job.id]'));
+}
+
 // 3. Theme option removed — app is light-only (no toggle anywhere).
 {
   const html = readFileSync(path.join(root, 'index.html'), 'utf8');

@@ -65,9 +65,10 @@ export async function getFarmerJobs(userId: string): Promise<FarmJob[]> {
   if (!supabase || !userId) return [];
 
   try {
+    // DIAGNOSTIC: Log authenticated user ID
+    console.log('[DIAG getFarmerJobs] userId:', userId);
+
     // 1. Fetch farmer's jobs without nested inquiries.
-    // Nested relation selects (job_inquiries(id)) are unreliable with RLS
-    // and can return null/[] even when inquiries exist, pinning the count at 0.
     const { data: jobs, error: jobsError } = await supabase
       .from('farm_jobs')
       .select('*, farms(name)')
@@ -79,23 +80,37 @@ export async function getFarmerJobs(userId: string): Promise<FarmJob[]> {
       return [];
     }
 
+    // DIAGNOSTIC: Log job IDs returned
+    const jobIds = (jobs || []).map((j: any) => j.id);
+    console.log('[DIAG getFarmerJobs] job IDs from farm_jobs:', jobIds);
+
     const jobList = (jobs || []).map((row: any) => ({
       ...row,
       farm_name: row.farms?.name || 'My Farm',
       inquiry_count: 0,
     }));
 
-    if (jobList.length === 0) return jobList;
+    if (jobList.length === 0) {
+      console.log('[DIAG getFarmerJobs] no jobs found, returning empty');
+      return jobList;
+    }
 
     // 2. Fetch all inquiries for the farmer's jobs.
-    // RLS policy "Farmers can view inquiries for their jobs" ensures only
-    // inquiries belonging to the authenticated farmer's jobs are returned.
-    const jobIds = jobList.map(j => j.id);
     const { data: inquiries, error: inquiriesError } = await supabase
       .from('job_inquiries')
       .select('job_id')
       .in('job_id', jobIds)
       .order('created_at', { ascending: false });
+
+    // DIAGNOSTIC: Log inquiry query results
+    if (inquiriesError) {
+      console.log('[DIAG getFarmerJobs] inquiry query ERROR:', inquiriesError.message, 'code:', inquiriesError.code);
+    } else {
+      console.log('[DIAG getFarmerJobs] inquiry records returned:', (inquiries || []).length);
+      (inquiries || []).forEach((inq: any) => {
+        console.log('[DIAG getFarmerJobs] inquiry job_id:', inq.job_id);
+      });
+    }
 
     if (inquiriesError) {
       console.warn('Notice loading job inquiries:', inquiriesError.message);
@@ -106,6 +121,11 @@ export async function getFarmerJobs(userId: string): Promise<FarmJob[]> {
     const inquiryCounts: Record<string, number> = {};
     (inquiries || []).forEach((inq: any) => {
       inquiryCounts[inq.job_id] = (inquiryCounts[inq.job_id] || 0) + 1;
+    });
+
+    // DIAGNOSTIC: Log calculated counts
+    jobList.forEach((job: any) => {
+      console.log('[DIAG getFarmerJobs] job', job.id, 'inquiry_count:', inquiryCounts[job.id] || 0);
     });
 
     // 4. Attach counts to jobs
