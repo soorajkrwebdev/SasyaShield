@@ -473,11 +473,13 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
       </div>
 
       {/* Modals */}
-      <CreateJobModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onJobCreated={fetchJobs}
-      />
+      {user && (
+        <CreateJobModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onJobCreated={fetchJobs}
+        />
+      )}
 
       {selectedJobForInquiry && (
         <JobInquiryModal
