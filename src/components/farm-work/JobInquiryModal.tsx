@@ -9,9 +9,10 @@ interface JobInquiryModalProps {
   job: PublicFarmJob | null;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export const JobInquiryModal: React.FC<JobInquiryModalProps> = ({ job, isOpen, onClose }) => {
+export const JobInquiryModal: React.FC<JobInquiryModalProps> = ({ job, isOpen, onClose, onSuccess }) => {
   const [applicantName, setApplicantName] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
   const [applicantEmail, setApplicantEmail] = useState('');
@@ -49,6 +50,7 @@ export const JobInquiryModal: React.FC<JobInquiryModalProps> = ({ job, isOpen, o
       setError(res.error || 'Failed to submit inquiry.');
     } else {
       setSubmitted(true);
+      onSuccess?.();
     }
   };
 

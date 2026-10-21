@@ -65,21 +65,53 @@ export async function getFarmerJobs(userId: string): Promise<FarmJob[]> {
   if (!supabase || !userId) return [];
 
   try {
-    const { data, error } = await supabase
+    // 1. Fetch farmer's jobs without nested inquiries.
+    // Nested relation selects (job_inquiries(id)) are unreliable with RLS
+    // and can return null/[] even when inquiries exist, pinning the count at 0.
+    const { data: jobs, error: jobsError } = await supabase
       .from('farm_jobs')
-      .select('*, farms(name), job_inquiries(id)')
+      .select('*, farms(name)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.warn('Notice loading farmer jobs:', error.message);
+    if (jobsError) {
+      console.warn('Notice loading farmer jobs:', jobsError.message);
       return [];
     }
 
-    return (data || []).map((row: any) => ({
+    const jobList = (jobs || []).map((row: any) => ({
       ...row,
       farm_name: row.farms?.name || 'My Farm',
-      inquiry_count: row.job_inquiries?.length || 0,
+      inquiry_count: 0,
+    }));
+
+    if (jobList.length === 0) return jobList;
+
+    // 2. Fetch all inquiries for the farmer's jobs.
+    // RLS policy "Farmers can view inquiries for their jobs" ensures only
+    // inquiries belonging to the authenticated farmer's jobs are returned.
+    const jobIds = jobList.map(j => j.id);
+    const { data: inquiries, error: inquiriesError } = await supabase
+      .from('job_inquiries')
+      .select('job_id')
+      .in('job_id', jobIds)
+      .order('created_at', { ascending: false });
+
+    if (inquiriesError) {
+      console.warn('Notice loading job inquiries:', inquiriesError.message);
+      return jobList;
+    }
+
+    // 3. Count inquiries per job
+    const inquiryCounts: Record<string, number> = {};
+    (inquiries || []).forEach((inq: any) => {
+      inquiryCounts[inq.job_id] = (inquiryCounts[inq.job_id] || 0) + 1;
+    });
+
+    // 4. Attach counts to jobs
+    return jobList.map(job => ({
+      ...job,
+      inquiry_count: inquiryCounts[job.id] || 0,
     }));
   } catch (err) {
     console.error('Failed to get farmer jobs:', err);

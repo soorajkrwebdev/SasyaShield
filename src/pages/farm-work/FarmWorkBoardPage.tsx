@@ -512,6 +512,7 @@ export const FarmWorkBoardPage: React.FC<FarmWorkBoardPageProps> = ({ onGoToAuth
           isOpen={!!selectedJobForInquiry}
           onClose={() => setSelectedJobForInquiry(null)}
           job={selectedJobForInquiry}
+          onSuccess={() => fetchJobs()}
         />
       )}
 
