@@ -1132,22 +1132,121 @@ function executeGroundedReasoning(
     };
   }
 
-  // 11. DEFAULT: Farm-Aware Contextual Response
+  // 11a. QUESTION: Farm name (record lookup)
+  if (
+    q.includes('farm name') ||
+    q.includes('name of my farm') ||
+    q.includes('my farm name') ||
+    q.includes('what is my farm')
+  ) {
+    const farmName = selectedFarm?.name || (ctx.farms[0]?.name ?? 'your farm');
+    const farmCount = ctx.farms.length;
+    return {
+      message: {
+        role: 'assistant',
+        title: 'Your Farm Name',
+        response_type: 'Farm Record',
+        source_level: 2,
+        content: farmCount === 0
+          ? 'You have not registered any farm yet. Create a farm in the "My Farms" module so I can look up your records.'
+          : `Your active farm is **${farmName}**${farmCount > 1 ? ` (${farmCount} farm(s) registered in total)` : ''}.`,
+        sections: [
+          {
+            heading: 'How to Change or Add Farms',
+            points: [
+              'Use the "My Farms" module to register a new farm or set a different active farm.',
+              'Farm AI answers record questions for your authenticated farm ledger only.',
+            ],
+          },
+        ],
+        sources: [
+          { organization: 'Farmer Ledger', document: 'public.farms', reference: 'Verified Farm Ledger' },
+        ],
+        timestamp: now,
+      },
+      response_type: 'Farm Record',
+    };
+  }
+
+  // 11b. QUESTION: Jeevamrutha — traditional fermented bio-enhancer (general educational knowledge)
+  if (q.includes('jeevamrutha') || q.includes('jeeva amrutha') || q.includes('jeevamruth')) {
+    return {
+      message: {
+        role: 'assistant',
+        title: 'Jeevamrutha — Traditional Bio-Enhancer',
+        response_type: 'Agricultural Knowledge',
+        source_level: 1,
+        content: `**Jeevamrutha** is a traditional farm-made fermented microbial bio-enhancer used in natural and organic farming to stimulate soil microbial activity and improve nutrient availability. It is **not** a chemical pesticide, so no pre-harvest interval (PHI) or re-entry interval (REI) applies.\\n\\n**Typical preparation (farm-scale, indicative):** ferment fresh cow dung, cow urine, jaggery or molasses, pulse flour (e.g., besan), a handful of undisturbed farm soil (native microbes), and water in a shaded container for about 24–48 hours, stirring occasionally. Use the mixture within a few days of preparation.\\n\\n**Typical use:** applied with irrigation water or as a soil drench around the root zone; some farmers also use it as a foliar spray. Follow your local Krishi Vigyan Kendra (KVK) or agricultural extension officer's guidance for your crop and season.\\n\\nFarm-made Jeevamrutha prepared exclusively from on-farm residues is permitted under NPOP organic standards, but it is **not** \"NPOP certified\" unless an accredited certification body has verified and certified it.`,
+        sections: [
+          { heading: 'Key Points', points: [
+            'Microbial bio-enhancer, not a chemical plant-protection product.',
+            'No PHI/REI applies because it is not a registered pesticide.',
+            'Prepare in small batches and use fresh; do not store for long periods.',
+            'Apply with irrigation or as a soil drench; foliar use varies by local practice.',
+          ] },
+          { heading: 'Source & Verification', points: [
+            'Traditional organic-farming practice referenced in ICAR / NPOP organic farming guidance.',
+            'Not a CIBRC-registered chemical; no label dosage, PHI, or REI is claimed here.',
+          ] },
+        ],
+        sources: [
+          { organization: 'ICAR', document: 'Natural / Organic Farming Guidance', reference: 'ICAR Knowledge Repository', url: 'https://icar.org.in' },
+          { organization: 'APEDA', document: 'National Programme for Organic Production (NPOP)', reference: 'Permitted soil amendments / organic inputs', url: 'https://apeda.gov.in' },
+        ],
+        timestamp: now,
+      },
+      response_type: 'Agricultural Knowledge',
+    };
+  }
+
+  // 11c. QUESTION: Koleroga / foot rot — organic disease management (general educational knowledge)
+  if (q.includes('koleroga') || q.includes('foot rot') || q.includes('phytophthora')) {
+    return {
+      message: {
+        role: 'assistant',
+        title: 'Koleroga (Foot Rot) — Organic Management Guidance',
+        response_type: 'Agricultural Knowledge',
+        source_level: 1,
+        content: `**Koleroga** (Phytophthora fruit/foot rot) is a fungal-like disease favoured by high humidity, continuous overcast weather, poor drainage, and waterlogged conditions — common in arecanut and black pepper plantations during the monsoon.\\n\\n**Organic / cultural management:**\\n• Improve plantation drainage; avoid waterlogging around the root zone and basin.\\n• Ensure adequate shade regulation and spacing for air circulation; avoid dense, humid canopies.\\n• Remove and destroy infected fruits/bunches and fallen plant debris to reduce inoculum.\\n• Avoid overhead irrigation and foliar spraying during prolonged rain or high humidity (>85%) to limit spread and wash-off.\\n• Apply *Trichoderma harzianum* or *T. viride* (about 50 g mixed with 5 kg well-decomposed FYM) in the basin — a biocontrol practice referenced in ICAR-CPCRI guidance.\\n\\nThis is general educational guidance, not a registered chemical recommendation. No chemical dosage, dilution, PHI, or REI is stated here. Consult your local KVK / agricultural extension officer before applying any plant-protection product.`,
+        sections: [
+          { heading: 'Management Steps', points: [
+            'Clear drainage channels and prevent waterlogging.',
+            'Sanitation: remove and destroy infected bunches/fruits and debris.',
+            'Improve air circulation; avoid excessively dense, humid canopies.',
+            'Avoid foliar sprays during rain or sustained high humidity.',
+            'Use Trichoderma with FYM as a soil/basin application (biocontrol).',
+          ] },
+          { heading: 'Source & Verification', points: [
+            'Disease ecology and cultural control per ICAR-CPCRI Package of Practices for Arecanut.',
+            'Biocontrol with Trichoderma referenced in existing organic-inputs guidance (ICAR-CPCRI / IISR).',
+          ] },
+        ],
+        sources: [
+          { organization: 'ICAR-CPCRI', document: 'Package of Practices for Arecanut', reference: 'Extension Publication', url: 'https://cpcri.icar.gov.in' },
+          { organization: 'ICAR-IISR', document: 'Good Agricultural Practices for Black Pepper', reference: 'IISR Extension Bulletin', url: 'https://spices.res.in' },
+        ],
+        timestamp: now,
+      },
+      response_type: 'Agricultural Knowledge',
+    };
+  }
+
+  // 11. DEFAULT: no verified handler matched — honest, non-farm-summary response
   return {
     message: {
       role: 'assistant',
-      title: 'Sasyashield Farm Intelligence Layer',
+      title: 'SasyaShield Farm AI — No Verified Answer Matched',
       response_type: 'General Explanation',
       source_level: 1,
-      content: `I am connected to your live farm database (${ctx.farms.length} farm(s), ${ctx.crops.length} crop(s), ${ctx.pestObservations.length} pest observation(s), ${ctx.soilTests.length} soil test(s)).\n\nAll responses adhere to the **4-Level Source Hierarchy**:\n1. **Level 1:** Verified agricultural science (ICAR, CPCRI, IISR, CIBRC, APEDA)\n2. **Level 2:** Your authenticated farm ledger\n3. **Level 3:** Live external telemetry (Weather, AGMARKNET)\n4. **Level 4:** AI explanation (never overriding verified sources)`,
+      content: `I don't have a verified, source-grounded answer for that specific topic in the current knowledge base, so I can't give you a reliable response just now.\n\nI can still look up your own farm records — for example:\n• Your farm name and registered crops\n• Pest observations, IPM decisions, and pesticide applications\n• Soil test results and weather around your farm\n• Market prices for commodities such as black pepper\n\nTry rephrasing your question around one of these areas, or ask me to explain a recorded farm practice.`,
       sections: [
         {
           heading: 'Active Farm Grounding',
           points: [
             `Active Farm: ${selectedFarm?.name || 'All farms'} (${selectedFarm?.farming_method || 'Standard'})`,
             `Crops Monitored: ${activeCrops.map(c => c.crop_name).join(', ') || 'None recorded yet'}`,
-            `Pest Observations on Record: ${ctx.pestObservations.length}`,
-            `Soil Tests on Record: ${ctx.soilTests.length}`,
+            `Pest Observations on Record: ${ctx.pestObservations?.length ?? 0}`,
+            `Soil Tests on Record: ${ctx.soilTests?.length ?? 0}`,
           ],
         },
         {

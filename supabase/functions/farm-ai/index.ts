@@ -163,8 +163,10 @@ async function callLlmWithStrictGrounding(
   query: string,
   context: FarmAiContext
 ) {
-  const systemPrompt = `You are the Farm AI intelligence layer for SmartFarm 2.0.
+  const systemPrompt = `You are the Farm AI intelligence layer for SasyaShield.
 Your primary role is to provide agricultural insight, pest diagnostics, IPM guidance, organic input education, and farm record lookups.
+
+When users greet you or ask introductory questions, always introduce yourself as the agricultural intelligence assistant for SasyaShield. Use "SasyaShield" consistently - never reference SmartFarm 2.0, SmartFarm2.0, or Smart Farm 2.0 in any user-facing response.
 
 CRITICAL SOURCE HIERARCHY (MANDATORY):
 LEVEL 1: Verified agricultural knowledge (ICAR, CPCRI, IISR, TNAU, KAU, APEDA, CIBRC).
@@ -490,7 +492,7 @@ function generateDeterministicGroundedResponse(query: string, context: FarmAiCon
           title: 'Pesticide Advisory Notice',
           response_type: 'Uncertain / Insufficient Evidence',
           source_level: 1,
-          content: "I don't have verified application information for that crop/pest combination in the current knowledge base.\n\nIn accordance with SmartFarm 2.0 safety standards, dosages, dilutions, waiting periods, and re-entry intervals are NEVER hallucinated or extrapolated. Please consult the registered product label or your local Krishi Vigyan Kendra (KVK) / Agricultural Officer for approved chemical recommendations.",
+          content: "I don't have verified application information for that crop/pest combination in the current knowledge base.\n\nIn accordance with SasyaShield safety standards, dosages, dilutions, waiting periods, and re-entry intervals are NEVER hallucinated or extrapolated. Please consult the registered product label or your local Krishi Vigyan Kendra (KVK) / Agricultural Officer for approved chemical recommendations.",
           sections: [
             {
               heading: 'Standard Safety Protocol',
@@ -752,7 +754,7 @@ function generateDeterministicGroundedResponse(query: string, context: FarmAiCon
       title: 'Farm Intelligence Advisory',
       response_type: 'Agricultural Knowledge',
       source_level: 1,
-      content: `Your inquiry relates to farm operations and crop management.\n\nSmartFarm 2.0 maintains a source-grounded agricultural knowledge base linked to your farm records. All chemical and organic advisories are verified against ICAR packages of practices, CIBRC statutory labels, and NPOP guidelines.\n\nYou can ask about:\n• Your recorded pest observations and IPM actions\n• Pesticide safety and official withholding intervals (PHI/REI)\n• Organic inputs, biofertilizers, and vermicompost\n• Soil test interpretation and weather advisories`,
+      content: `Your inquiry relates to farm operations and crop management.\n\nSasyaShield maintains a source-grounded agricultural knowledge base linked to your farm records. All chemical and organic advisories are verified against ICAR packages of practices, CIBRC statutory labels, and NPOP guidelines.\n\nYou can ask about:\n• Your recorded pest observations and IPM actions\n• Pesticide safety and official withholding intervals (PHI/REI)\n• Organic inputs, biofertilizers, and vermicompost\n• Soil test interpretation and weather advisories`,
       sections: [
         {
           heading: 'Available System Tools',
