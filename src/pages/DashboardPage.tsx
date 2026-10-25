@@ -127,15 +127,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               {profile?.farming_type ? `${profile.farming_type} Farming` : 'Sustainable Farm System'}
             </span>
             <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold border border-rose-100">
-              🐛 Crop Protection Intelligence
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-semibold border border-rose-100">
+              Crop Protection Intelligence
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-100">
-              🌿 Organic Knowledge Hub
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-100">
+              Organic Knowledge Hub
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-heading">
-            Welcome back, {profile?.full_name || 'Farmer'}! 👋
+            Welcome back, {profile?.full_name || 'Farmer'}!
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
             Your crop protection & organic farming snapshot for{' '}
@@ -145,7 +145,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
 
         {/* Flagship Quick Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="primary"
             size="sm"
@@ -205,10 +205,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         />
       </div>
 
-      {/* Body 6-card grid: 2 flagship + 4 intelligence */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-        {/* 1. Pest & IPM Attention (Flagship Pillar 1) */}
-        <div className="bg-white rounded-2xl border border-rose-200/60 p-5 shadow-2xs ring-1 ring-rose-50">
+      {/* Column-based dashboard layout */}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 items-start">
+        {/* Column 1 */}
+        <div className="flex flex-col gap-5">
+          {/* Pest & IPM Attention */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
@@ -221,7 +223,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
             <button
               onClick={onOpenPesticideAdvisory}
-              className="text-[11px] font-semibold text-rose-700 hover:text-rose-800 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-rose-700 hover:text-rose-800 flex items-center gap-1 cursor-pointer"
             >
               <span>Open Advisory</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -230,15 +232,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           {highSeverityPests.length === 0 && pendingAppFollowups.length === 0 ? (
             <div className="py-5 text-center rounded-xl bg-rose-50/50 border border-rose-100/70">
-              <p className="text-xs font-semibold text-rose-700">No urgent pest alerts 🎉</p>
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-xs font-semibold text-rose-700">No urgent pest alerts</p>
+              <p className="text-xs text-slate-500 mt-1">
                 Continue routine scouting. Record any new observation immediately.
               </p>
             </div>
           ) : (
             <ul className="space-y-2">
               {highSeverityPests.slice(0, 3).map(p => (
-                <li key={p.id} className="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-rose-50/70 border border-rose-100">
+                <li key={p.id} className="flex min-w-0 items-start justify-between gap-2 p-2.5 rounded-xl bg-rose-50/70 border border-rose-100">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-bold text-slate-900 truncate">{p.pest_name}</span>
@@ -246,27 +248,92 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         {p.severity}
                       </Badge>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">{p.symptoms}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{p.symptoms}</p>
                   </div>
                 </li>
               ))}
               {pendingAppFollowups.slice(0, 2).map(a => (
-                <li key={a.id} className="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-100">
+                <li key={a.id} className="flex min-w-0 items-start justify-between gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-100">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-bold text-slate-900 truncate">App: {a.product_name}</span>
                       <Badge variant="amber" size="sm">follow-up</Badge>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Follow-up date: {a.follow_up_date || 'Not set'}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Follow-up date: {a.follow_up_date || 'Not set'}</p>
                   </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
+        {/* Recent Farm Activities */}
+        <RecentActivitiesFeed
+          activities={activities}
+          onViewAll={() => onTabChange('activities')}
+          onRecordActivity={onOpenAddActivity}
+        />
 
-        {/* 2. Organic Farming Progress (Flagship Pillar 2) */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50/40 rounded-2xl border border-emerald-200/60 p-5">
+        {/* Soil & Water Tests */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
+                <TestTubeDiagonal className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Soil &amp; Water Tests</h3>
+                <p className="text-[11px] text-slate-500">Laboratory reports &amp; analysis</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onTabChange('tests')}
+              className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 flex items-center gap-1 cursor-pointer"
+            >
+              <span>All Tests</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="p-3 rounded-xl bg-teal-50/80 border border-teal-100">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800">Soil Tests</span>
+              </div>
+              <p className="text-xl font-extrabold text-teal-900 mt-1">{soilTests.length}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Latest: {latestSoil?.test_date || 'None'}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-100">
+              <div className="flex items-center gap-1.5">
+                <Droplets className="w-3 h-3 text-blue-700" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">Water Tests</span>
+              </div>
+              <p className="text-xl font-extrabold text-blue-900 mt-1">{waterTests.length}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Latest: {latestWater?.test_date || 'None'}</p>
+            </div>
+          </div>
+
+          {soilTests.length === 0 && waterTests.length === 0 ? (
+            <div className="py-3 text-center rounded-xl bg-slate-50 border border-slate-100">
+              <p className="text-xs font-semibold text-slate-600">No lab reports yet</p>
+              <p className="text-[11px] text-slate-500 mt-1">
+                Upload soil/water tests to receive nutrient recommendations.
+              </p>
+            </div>
+          ) : (
+            <button
+              onClick={() => onTabChange('tests')}
+              className="w-full text-[11px] font-semibold px-3 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-center cursor-pointer transition-colors"
+            >
+              View Reports &amp; Recommendations →
+            </button>
+          )}
+        </div>
+      </div>
+
+        {/* Column 2 */}
+        <div className="flex flex-col gap-5">
+          {/* Organic Farming Progress */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
@@ -326,18 +393,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         </div>
 
-        {/* 3. Weather Widget (existing) */}
-        <WeatherWidget farm={selectedFarm} />
-
-        {/* 4. Recent Activities Feed (existing) */}
-        <RecentActivitiesFeed
-          activities={activities}
-          onViewAll={() => onTabChange('activities')}
-          onRecordActivity={onOpenAddActivity}
-        />
-
-        {/* 5. Recent Farm Inputs (New Card) */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
+        {/* Recent Farm Inputs */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
@@ -396,66 +453,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </ul>
           )}
         </div>
+      </div>
 
-        {/* 6. Soil Test Status (New Card) */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
-                <TestTubeDiagonal className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Soil &amp; Water Tests</h3>
-                <p className="text-[11px] text-slate-500">Laboratory reports &amp; analysis</p>
-              </div>
-            </div>
-            <button
-              onClick={() => onTabChange('tests')}
-              className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 flex items-center gap-1 cursor-pointer"
-            >
-              <span>All Tests</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+        {/* Column 3 */}
+        <div className="flex flex-col gap-5">
+          {/* Weather Widget */}
+          <div className="rounded-2xl border border-white/40 shadow-sm p-3">
+            <WeatherWidget farm={selectedFarm} />
           </div>
-
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="p-3 rounded-xl bg-teal-50/80 border border-teal-100">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800">Soil Tests</span>
-              </div>
-              <p className="text-xl font-extrabold text-teal-900 mt-1">{soilTests.length}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
-                Latest: {latestSoil?.test_date || 'None'}
-              </p>
-            </div>
-            <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-100">
-              <div className="flex items-center gap-1.5">
-                <Droplets className="w-3 h-3 text-blue-700" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">Water Tests</span>
-              </div>
-              <p className="text-xl font-extrabold text-blue-900 mt-1">{waterTests.length}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
-                Latest: {latestWater?.test_date || 'None'}
-              </p>
-            </div>
-          </div>
-
-          {soilTests.length === 0 && waterTests.length === 0 ? (
-            <div className="py-3 text-center rounded-xl bg-slate-50 border border-slate-100">
-              <p className="text-xs font-semibold text-slate-600">No lab reports yet</p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Upload soil/water tests to receive nutrient recommendations.
-              </p>
-            </div>
-          ) : (
-            <button
-              onClick={() => onTabChange('tests')}
-              className="w-full text-[11px] font-semibold px-3 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-center cursor-pointer transition-colors"
-            >
-              View Reports &amp; Recommendations →
-            </button>
-          )}
-        </div>
+      </div>
       </div>
     </div>
   );
