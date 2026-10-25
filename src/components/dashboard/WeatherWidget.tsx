@@ -44,52 +44,65 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ farm }) => {
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
       {/* Top row: Farm & condition */}
-      <div className="flex items-start justify-between relative z-10">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-2 relative z-10">
+        <div className="min-w-0 flex-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300/90 block">
             Hyperlocal Weather & Agronomic Advisory
           </span>
-          <h4 className="text-sm font-semibold text-emerald-100 mt-0.5 truncate max-w-[200px] sm:max-w-xs">
+          <h4 className="text-sm font-semibold text-emerald-100 mt-0.5 truncate max-w-full sm:max-w-xs">
             {farm ? farm.name : 'Regional Agriculture Forecast'}
           </h4>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-800/80 border border-emerald-600/40 text-emerald-200">
+        <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-800/80 border border-emerald-600/40 text-emerald-200 whitespace-nowrap">
           {weather.condition}
         </span>
       </div>
 
       {/* Main Temperature & Key Metrics */}
-      <div className="my-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-        <div className="flex items-baseline gap-3">
-          <span className="text-4xl sm:text-5xl font-extrabold tracking-tight font-heading">
+      <div className="my-5 flex flex-col gap-4 relative z-10">
+        {/* Left: Temperature + Feels like */}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-3">
+          <span className="text-4xl sm:text-4xl font-extrabold tracking-tight font-heading shrink-0">
             {weather.temperature}°C
           </span>
-          <div className="text-xs text-emerald-200/80">
-            <p>Feels like {weather.temperature + 1}°C</p>
-            <p className="text-[11px] text-emerald-300/70">
+          <div className="min-w-0 text-xs text-emerald-200/80">
+            <p className="flex flex-wrap items-baseline gap-1">
+              Feels like <span className="font-semibold">{weather.temperature + 1}°C</span>
+            </p>
+            <p className="text-[11px] text-emerald-300/70 break-words">
               {farm?.location || 'Western Ghats / Peninsular India'}
             </p>
           </div>
         </div>
 
-        {/* 3 Metric Pills */}
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10">
-            <Droplets className="w-4 h-4 mx-auto text-emerald-300 mb-1" />
-            <span className="block text-[10px] text-emerald-200 uppercase font-bold">Humidity</span>
-            <span className="font-bold text-white text-sm">{weather.humidity}%</span>
+        {/* Right: three metric cards */}
+        <div className="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-3 sm:gap-3 sm:text-sm">
+          <div>
+            <Droplets className="w-4 h-4 mx-auto text-emerald-300 mb-1.5" />
+            <span className="block text-[10px] text-emerald-200 uppercase font-bold whitespace-nowrap">
+              HUMIDITY
+            </span>
+            <span className="font-bold text-white text-sm whitespace-nowrap">
+              {weather.humidity}%
+            </span>
           </div>
-
-          <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10">
-            <CloudRain className="w-4 h-4 mx-auto text-sky-300 mb-1" />
-            <span className="block text-[10px] text-emerald-200 uppercase font-bold">Rainfall</span>
-            <span className="font-bold text-white text-sm">{weather.precipitation} mm</span>
+          <div>
+            <CloudRain className="w-4 h-4 mx-auto text-sky-300 mb-1.5" />
+            <span className="block text-[10px] text-emerald-200 uppercase font-bold whitespace-nowrap">
+              RAIN
+            </span>
+            <span className="font-bold text-white text-sm whitespace-nowrap">
+              {weather.precipitation} mm
+            </span>
           </div>
-
-          <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10">
-            <Wind className="w-4 h-4 mx-auto text-teal-300 mb-1" />
-            <span className="block text-[10px] text-emerald-200 uppercase font-bold">Wind</span>
-            <span className="font-bold text-white text-sm">{weather.windSpeed} km/h</span>
+          <div>
+            <Wind className="w-4 h-4 mx-auto text-teal-300 mb-1.5" />
+            <span className="block text-[10px] text-emerald-200 uppercase font-bold whitespace-nowrap">
+              WIND
+            </span>
+            <span className="font-bold text-white text-sm whitespace-nowrap">
+              {weather.windSpeed} km/h
+            </span>
           </div>
         </div>
       </div>
