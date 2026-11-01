@@ -26,6 +26,7 @@ import { ExpensesPage } from './pages/ExpensesPage';
 import { HarvestsPage } from './pages/HarvestsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { CommunityPage } from './pages/CommunityPage';
 import { ModulePreviewPage } from './pages/ModulePreviewPage';
 import { FarmFormModal } from './components/farms/FarmFormModal';
 import { CropFormModal } from './components/crops/CropFormModal';
@@ -205,6 +206,7 @@ const MainAppContent: React.FC = () => {
       case 'harvests':     return <HarvestsPage />;
       case 'notifications': return <NotificationsPage />;
       case 'reports':      return <ReportsPage />;
+      case 'community':    return <CommunityPage />;
       default:
         return (
           <ModulePreviewPage

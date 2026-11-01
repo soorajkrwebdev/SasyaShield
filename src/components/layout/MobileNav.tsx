@@ -19,7 +19,8 @@ import {
   BookOpen,
   UserCheck,
   LogOut,
-  Package
+  Package,
+  MessageCircle,
 } from 'lucide-react';
 import type { NavigationTab } from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -61,6 +62,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     { id: 'farm-ai', label: 'Farm AI Assistant', icon: <Bot className="w-4 h-4 text-slate-500" /> },
     { id: 'knowledge', label: 'Knowledge Hub', icon: <BookOpen className="w-4 h-4 text-slate-500" /> },
     { id: 'profile', label: 'Farmer Profile & Settings', icon: <UserCheck className="w-4 h-4 text-emerald-600" /> },
+    { id: 'community', label: 'Farmer Community', icon: <MessageCircle className="w-4 h-4 text-slate-500" /> },
   ];
 
   return (

@@ -24,6 +24,7 @@ import {
   Sparkles,
   IndianRupee,
   Wheat,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Badge } from '../common/Badge';
@@ -49,7 +50,8 @@ export type NavigationTab =
   | 'knowledge'
   | 'reports'
   | 'notifications'
-  | 'profile';
+  | 'profile'
+  | 'community';
 
 interface SidebarProps {
   currentTab: NavigationTab;
@@ -140,6 +142,12 @@ const NAV_SECTIONS: NavSection[] = [
     heading: 'Public',
     items: [
       { id: 'farm-work', label: 'Farm Work Board', icon: <Briefcase className="w-4 h-4" /> },
+    ],
+  },
+  {
+    heading: 'Community',
+    items: [
+      { id: 'community', label: 'Farmer Community', icon: <MessageCircle className="w-4 h-4" /> },
     ],
   },
 ];
