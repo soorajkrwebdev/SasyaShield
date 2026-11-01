@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  deletePost,
   fetchPosts,
   fetchAnswerCounts,
   getCommunityImageSignedUrl,
+  updatePost,
   type CommunityPost,
   type CommunityCategory,
 } from '../../services/communityService';
+import { useAuth } from '../../contexts/AuthContext';
 import { EmptyState } from '../common/EmptyState';
 import { Button } from '../common/Button';
+import { Modal } from '../common/Modal';
 import { CommunityDiscussion } from './CommunityDiscussion';
 import {
   MessageCircle,
@@ -20,7 +24,9 @@ import {
   RefreshCw,
   Loader2,
   MoreHorizontal,
+  Pencil,
   Plus,
+  Trash2,
 } from 'lucide-react';
 
 const PAGE_SIZE = 10;
@@ -35,6 +41,17 @@ const CATEGORY_LABELS: Record<CommunityCategory, string> = {
   'Market & Pricing': 'Market & Pricing',
   'General Farming': 'General Farming',
 };
+
+const COMMUNITY_CATEGORIES: CommunityCategory[] = [
+  'Pest & Diseases',
+  'Organic Farming',
+  'Fertilizers & Manure',
+  'Pesticide Safety',
+  'Crop Management',
+  'Irrigation & Soil Health',
+  'Market & Pricing',
+  'General Farming',
+];
 
 const CATEGORY_COLORS: Record<CommunityCategory, string> = {
   'Pest & Diseases': 'bg-rose-50 text-rose-700 border-rose-200',
@@ -200,12 +217,167 @@ const PostImageGallery: React.FC<{ post: CommunityPost }> = ({ post }) => {
   );
 };
 
+interface EditCommunityPostModalProps {
+  post: CommunityPost;
+  onClose: () => void;
+  onSaved: (post: CommunityPost) => void;
+}
+
+const EditCommunityPostModal: React.FC<EditCommunityPostModalProps> = ({
+  post,
+  onClose,
+  onSaved,
+}) => {
+  const [title, setTitle] = useState(post.title);
+  const [content, setContent] = useState(post.content);
+  const [category, setCategory] = useState<CommunityCategory>(post.category);
+  const [crop, setCrop] = useState(post.crop ?? '');
+  const [location, setLocation] = useState(post.location ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+    if (!title.trim() || !content.trim()) {
+      setError('Enter both a title and a description before saving.');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await updatePost(post.id, {
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        crop: crop.trim() || null,
+        location: location.trim() || null,
+      });
+
+      if (result.error || !result.data) {
+        setError(result.error || 'The post could not be updated. Please try again.');
+        return;
+      }
+
+      onSaved(result.data);
+    } catch {
+      setError('The post could not be updated. Check your connection and try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal
+      isOpen
+      onClose={() => {
+        if (!saving) onClose();
+      }}
+      title="Edit your post"
+      subtitle="Update your question for the farming community."
+      maxWidth="2xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700" role="alert">
+            {error}
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="edit-community-title" className="mb-1.5 block text-xs font-bold text-slate-700">
+            Title <span className="text-rose-600">*</span>
+          </label>
+          <input
+            id="edit-community-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={200}
+            required
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-community-content" className="mb-1.5 block text-xs font-bold text-slate-700">
+            Description <span className="text-rose-600">*</span>
+          </label>
+          <textarea
+            id="edit-community-content"
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            rows={5}
+            required
+            className="w-full resize-y rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-community-category" className="mb-1.5 block text-xs font-bold text-slate-700">
+            Category
+          </label>
+          <select
+            id="edit-community-category"
+            value={category}
+            onChange={(event) => setCategory(event.target.value as CommunityCategory)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            {COMMUNITY_CATEGORIES.map((item) => (
+              <option key={item} value={item}>{CATEGORY_LABELS[item]}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="edit-community-crop" className="mb-1.5 block text-xs font-bold text-slate-700">
+              Crop (optional)
+            </label>
+            <input
+              id="edit-community-crop"
+              value={crop}
+              onChange={(event) => setCrop(event.target.value)}
+              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+          <div>
+            <label htmlFor="edit-community-location" className="mb-1.5 block text-xs font-bold text-slate-700">
+              Location (optional)
+            </label>
+            <input
+              id="edit-community-location"
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" size="sm" loading={saving}>
+            Save changes
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
 export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   onAskCommunity,
   refreshKey = 0,
 }) => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [selectedDiscussionPost, setSelectedDiscussionPost] = useState<CommunityPost | null>(null);
+  const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
+  const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -333,6 +505,43 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
     loadPosts();
   };
 
+  const handleDeletePost = async (post: CommunityPost) => {
+    if (!user || user.id !== post.user_id || deletingPostId) return;
+    if (!window.confirm('Delete this post? This action cannot be undone.')) return;
+
+    setDeletingPostId(post.id);
+    setActionError(null);
+    try {
+      const result = await deletePost(post.id);
+      if (result.error) {
+        setActionError(`We couldn't delete your post: ${result.error}`);
+        return;
+      }
+
+      setPosts((current) => current.filter((item) => item.id !== post.id));
+      setAnswerCounts((current) => {
+        const next = { ...current };
+        delete next[post.id];
+        return next;
+      });
+      if (selectedDiscussionPost?.id === post.id) setSelectedDiscussionPost(null);
+    } catch {
+      setActionError('We couldn’t delete your post. Check your connection and try again.');
+    } finally {
+      setDeletingPostId(null);
+    }
+  };
+
+  const handlePostSaved = (updatedPost: CommunityPost) => {
+    setPosts((current) =>
+      current.map((post) => (post.id === updatedPost.id ? updatedPost : post))
+    );
+    if (selectedDiscussionPost?.id === updatedPost.id) {
+      setSelectedDiscussionPost(updatedPost);
+    }
+    setEditingPost(null);
+  };
+
   // --------------------------------------------------------------------------
   // Render post card
   // --------------------------------------------------------------------------
@@ -405,7 +614,56 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                     .join(', ')}
                 </p>
               </div>
-              <MoreHorizontal className="w-4 h-4 text-slate-400 shrink-0" />
+              {user?.id === post.user_id && (
+                <div className="relative shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setOpenMenuPostId((current) => current === post.id ? null : post.id)}
+                    aria-label={`Post options for ${post.title}`}
+                    aria-haspopup="menu"
+                    aria-expanded={openMenuPostId === post.id}
+                    className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                  {openMenuPostId === post.id && (
+                    <div
+                      role="menu"
+                      aria-label="Post options"
+                      className="absolute right-0 top-full z-20 mt-1 min-w-36 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setEditingPost(post);
+                          setOpenMenuPostId(null);
+                          setActionError(null);
+                        }}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={deletingPostId === post.id}
+                        onClick={() => {
+                          setOpenMenuPostId(null);
+                          void handleDeletePost(post);
+                        }}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                      >
+                        {deletingPostId === post.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Trash2 className="h-4 w-4" />}
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -558,6 +816,12 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         </div>
       </div>
 
+      {actionError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700" role="alert">
+          {actionError}
+        </div>
+      )}
+
       <div className="space-y-3">{posts.map((post) => renderPost(post))}</div>
 
       {hasMore && posts.length > 0 && (
@@ -578,6 +842,13 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         <CommunityDiscussion
           post={selectedDiscussionPost}
           onClose={() => setSelectedDiscussionPost(null)}
+        />
+      )}
+      {editingPost && (
+        <EditCommunityPostModal
+          post={editingPost}
+          onClose={() => setEditingPost(null)}
+          onSaved={handlePostSaved}
         />
       )}
     </div>
